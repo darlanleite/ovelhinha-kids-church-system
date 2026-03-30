@@ -100,7 +100,25 @@ const Configuracoes = () => {
         <p className="text-sm text-muted-foreground mt-2">Compartilhe este código com as tias da sala</p>
       </div>
 
-      {/* System */}
+      {/* ESP IDs */}
+      <div className="bg-card rounded-card shadow-soft border border-border p-6">
+        <h2 className="font-heading font-extrabold text-lg text-foreground mb-4">📡 ESP32 — Pulseiras</h2>
+        <div className="space-y-3">
+          {bracelets.map((b) => (
+            <div key={b.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+              <span className="font-mono font-bold text-foreground text-sm w-8">#{b.number}</span>
+              <input
+                value={b.espId || ''}
+                onChange={(e) => updateBracelet(b.id, { espId: e.target.value || null })}
+                placeholder="Ex: A4:B2:C1:D3"
+                className="flex-1 px-3 py-2 rounded-lg border border-border bg-card text-foreground font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              />
+              <Cpu className="w-4 h-4 text-muted-foreground" />
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="bg-card rounded-card shadow-soft border border-border p-6">
         <h2 className="font-heading font-extrabold text-lg text-foreground mb-4">⚙️ Sistema</h2>
         <div>
