@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, UserPlus, Watch, BarChart3, Settings, LogOut, Bell } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import OvelhinhaLogo from '@/components/OvelhinhaLogo';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: Home },
@@ -31,7 +32,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
       <aside className="w-64 bg-card border-r border-border flex flex-col shrink-0">
         <div className="p-6">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <span className="text-2xl">🐑</span>
+            <OvelhinhaLogo size={32} />
             <span className="font-heading font-black text-xl text-foreground">Ovelhinha</span>
           </Link>
         </div>
@@ -77,7 +78,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         {/* Header */}
         <header className="h-16 bg-primary flex items-center px-6 shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🐑</span>
+            <OvelhinhaLogo size={28} white={true} />
             <span className="font-heading font-extrabold text-primary-foreground text-lg">Ovelhinha</span>
           </div>
           <div className="ml-auto">

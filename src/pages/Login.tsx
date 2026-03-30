@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Monitor, Smartphone } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { toast } from 'sonner';
+import OvelhinhaLogo from '@/components/OvelhinhaLogo';
 
 const Login = () => {
   const [role, setRole] = useState<'reception' | 'tia' | null>(null);
@@ -43,7 +44,9 @@ const Login = () => {
       <div className="relative z-10 w-full max-w-md px-6 animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-10">
-          <h1 className="text-5xl font-heading font-black text-foreground">🐑 Ovelhinha</h1>
+          <div className="flex justify-center mb-3">
+            <OvelhinhaLogo size={56} />
+          </div>
           <p className="mt-2 text-muted-foreground font-body text-sm font-medium">Cada criança, no lugar certo.</p>
         </div>
 

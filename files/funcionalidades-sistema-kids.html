@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Funcionalidades — Sistema Kids</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;0,900;1,300&display=swap');
+
+  :root {
+    --bg: #f7f4ef;
+    --surface: #ffffff;
+    --border: #e8e2d9;
+    --ink: #1a1612;
+    --ink-mid: #6b6259;
+    --ink-dim: #a89e93;
+    --c1: #c84b31; /* vermelho */
+    --c2: #2563a8; /* azul */
+    --c3: #1d7a4e; /* verde */
+    --c4: #7c3aed; /* roxo */
+    --c5: #b45309; /* âmbar */
+    --c6: #0e7490; /* ciano */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    padding: 40px 20px 60px;
+    line-height: 1.6;
+  }
+
+  .wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 24px;
+    margin-bottom: 40px;
+  }
+
+  .header-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 10px;
+  }
+
+  header h1 {
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  header h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--c1);
+  }
+
+  header p {
+    margin-top: 12px;
+    font-size: 0.95rem;
+    color: var(--ink-mid);
+    font-weight: 300;
+    max-width: 560px;
+  }
+
+  /* SUMMARY CHIPS */
+  .summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 40px;
+  }
+
+  .chip {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    padding: 5px 12px;
+    border-radius: 99px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1.5px solid;
+  }
+
+  .chip-1 { color: var(--c1); border-color: var(--c1); background: rgba(200,75,49,0.07); }
+  .chip-2 { color: var(--c2); border-color: var(--c2); background: rgba(37,99,168,0.07); }
+  .chip-3 { color: var(--c3); border-color: var(--c3); background: rgba(29,122,78,0.07); }
+  .chip-4 { color: var(--c4); border-color: var(--c4); background: rgba(124,58,237,0.07); }
+  .chip-5 { color: var(--c5); border-color: var(--c5); background: rgba(180,83,9,0.07); }
+  .chip-6 { color: var(--c6); border-color: var(--c6); background: rgba(14,116,144,0.07); }
+
+  /* SECTION */
+  .section {
+    margin-bottom: 36px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 24px;
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .section-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  .section-meta {
+    flex: 1;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  .section-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .section-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+
+  /* color accents per section */
+  .s1 .section-label { color: var(--c1); }
+  .s1 .section-header { border-left: 4px solid var(--c1); }
+  .s2 .section-label { color: var(--c2); }
+  .s2 .section-header { border-left: 4px solid var(--c2); }
+  .s3 .section-label { color: var(--c3); }
+  .s3 .section-header { border-left: 4px solid var(--c3); }
+  .s4 .section-label { color: var(--c4); }
+  .s4 .section-header { border-left: 4px solid var(--c4); }
+  .s5 .section-label { color: var(--c5); }
+  .s5 .section-header { border-left: 4px solid var(--c5); }
+  .s6 .section-label { color: var(--c6); }
+  .s6 .section-header { border-left: 4px solid var(--c6); }
+
+  /* FEATURES */
+  .feature {
+    display: flex;
+    gap: 16px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+    transition: background 0.15s;
+  }
+
+  .feature:last-child { border-bottom: none; }
+  .feature:hover { background: rgba(0,0,0,0.015); }
+
+  .feature-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--ink-dim);
+    min-width: 28px;
+    padding-top: 3px;
+  }
+
+  .feature-body { flex: 1; }
+
+  .feature-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .feature-desc {
+    font-size: 0.82rem;
+    color: var(--ink-mid);
+    font-weight: 300;
+    line-height: 1.55;
+  }
+
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.52rem;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .tag-rec { background: #fef2f2; color: var(--c1); }
+  .tag-mob { background: #eff6ff; color: var(--c2); }
+  .tag-both { background: #f0fdf4; color: var(--c3); }
+  .tag-hw { background: #faf5ff; color: var(--c4); }
+  .tag-future { background: #fffbeb; color: var(--c5); }
+  .tag-seg { background: #ecfeff; color: var(--c6); }
+
+  /* PRIORITY MATRIX */
+  .matrix {
+    margin-bottom: 36px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .matrix-title {
+    padding: 16px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .matrix-cell {
+    padding: 20px 24px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .matrix-cell:nth-child(2n) { border-right: none; }
+  .matrix-cell:nth-child(3),
+  .matrix-cell:nth-child(4) { border-bottom: none; }
+
+  .matrix-cell-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .matrix-cell.q1 .matrix-cell-label { color: var(--c1); }
+  .matrix-cell.q2 .matrix-cell-label { color: var(--c2); }
+  .matrix-cell.q3 .matrix-cell-label { color: var(--c5); }
+  .matrix-cell.q4 .matrix-cell-label { color: var(--ink-dim); }
+
+  .matrix-items {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .matrix-item {
+    font-size: 0.78rem;
+    color: var(--ink-mid);
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+  }
+
+  .matrix-item::before {
+    content: '—';
+    font-size: 0.6rem;
+    color: var(--ink-dim);
+    flex-shrink: 0;
+  }
+
+  /* FOOTER */
+  footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1.5px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+    gap: 12px;
+  }
+
+  .footer-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--ink-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .total-features {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--ink-mid);
+  }
+
+  @media (max-width: 540px) {
+    .matrix-grid { grid-template-columns: 1fr; }
+    .matrix-cell { border-right: none; }
+    .matrix-cell:nth-child(3) { border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="header-tag">Sistema de Gestão · Igreja Kids</div>
+    <h1>Lista de <em>Funcionalidades</em></h1>
+    <p>Base completa do sistema de pulseiras para área kids — recepção, mobile, hardware e segurança.</p>
+  </header>
+
+  <div class="summary">
+    <span class="chip chip-1">Recepção (PC/Tablet)</span>
+    <span class="chip chip-2">Mobile (Tia)</span>
+    <span class="chip chip-3">Ambos</span>
+    <span class="chip chip-4">Hardware</span>
+    <span class="chip chip-5">Futuro</span>
+    <span class="chip chip-6">Segurança</span>
+  </div>
+
+  <!-- SECTION 1: CADASTRO -->
+  <div class="section s1">
+    <div class="section-header">
+      <div class="section-icon">📋</div>
+      <div class="section-meta">
+        <div class="section-label">Módulo 1</div>
+        <div class="section-title">Cadastro de Crianças e Responsáveis</div>
+      </div>
+      <div class="section-count">6 funcionalidades</div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">1.1</div>
+      <div class="feature-body">
+        <div class="feature-title">Cadastro rápido na chegada <span class="tag tag-rec">Recepção</span></div>
+        <div class="feature-desc">Nome da criança, idade, nome do responsável e número da pulseira — tudo em menos de 30 segundos. Campo de alergia ou observação médica opcional.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">1.2</div>
+      <div class="feature-body">
+        <div class="feature-title">Impressão de etiqueta <span class="tag tag-rec">Recepção</span></div>
+        <div class="feature-desc">Etiqueta com nome da criança, número e QR Code. Cola na roupa. Compatível com qualquer impressora térmica (Elgin, Zebra, Argox) ou impressora comum com etiquetas adesivas A4.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">1.3</div>
+      <div class="feature-body">
+        <div class="feature-title">Modo sem impressora <span class="tag tag-both">Ambos</span></div>
+        <div class="feature-desc">Se a igreja não tiver impressora, o sistema gera um número sequencial (ex: criança #44) e relaciona à pulseira do pai. A tia pode buscar pelo número ou nome.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">1.4</div>
+      <div class="feature-body">
+        <div class="feature-title">Múltiplos responsáveis <span class="tag tag-rec">Recepção</span></div>
+        <div class="feature-desc">Pai e mãe podem receber pulseiras diferentes para a mesma criança. Ao chamar, o sistema aciona as duas pulseiras ao mesmo tempo.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">1.5</div>
+      <div class="feature-body">
+        <div class="feature-title">Cadastro recorrente <span class="tag tag-rec">Recepção</span></div>
+        <div class="feature-desc">Famílias que frequentam toda semana ficam salvas. No domingo seguinte, a recepcionista busca o nome e faz check-in em 1 clique — sem redigitar nada.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">1.6</div>
+      <div class="feature-body">
+        <div class="feature-title">Foto da criança (opcional) <span class="tag tag-future">Futuro</span></div>
+        <div class="feature-desc">Foto tirada na entrada para facilitar a identificação. Aparece na tela da tia quando ela abre o cadastro da criança.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: ACIONAMENTO -->
+  <div class="section s2">
+    <div class="section-header">
+      <div class="section-icon">🔔</div>
+      <div class="section-meta">
+        <div class="section-label">Módulo 2</div>
+        <div class="section-title">Acionamento da Pulseira</div>
+      </div>
+      <div class="section-count">5 funcionalidades</div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">2.1</div>
+      <div class="feature-body">
+        <div class="feature-title">Chamar pelo nome ou número <span class="tag tag-both">Ambos</span></div>
+        <div class="feature-desc">A tia digita o nome da criança ou o número (#44) e clica em "Chamar". A pulseira do pai acende imediatamente.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">2.2</div>
+      <div class="feature-body">
+        <div class="feature-title">Chamar por QR Code <span class="tag tag-mob">Mobile</span></div>
+        <div class="feature-desc">A tia aponta a câmera para a etiqueta na roupa da criança. O sistema identifica e aciona a pulseira automaticamente — sem digitar nada.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">2.3</div>
+      <div class="feature-body">
+        <div class="feature-title">Motivo da chamada <span class="tag tag-both">Ambos</span></div>
+        <div class="feature-desc">A tia seleciona o motivo: 🚽 Banheiro, 🤒 Passando mal, 😢 Chorando muito, ⚠️ Urgência, ou digita um motivo personalizado. Aparece na pulseira como cor diferente (ex: vermelho = urgência, amarelo = banheiro).</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">2.4</div>
+      <div class="feature-body">
+        <div class="feature-title">Encerrar chamada <span class="tag tag-both">Ambos</span></div>
+        <div class="feature-desc">Quando o pai chega, a recepcionista clica "Pai chegou" — a pulseira apaga e o evento fica registrado no histórico com horário.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">2.5</div>
+      <div class="feature-body">
+        <div class="feature-title">Reacionar automaticamente <span class="tag tag-both">Ambos</span></div>
+        <div class="feature-desc">Se o pai não vier em X minutos (configurável, ex: 5 min), a pulseira pisca mais rápido e o sistema emite um alerta na tela da recepção.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: PAINEL RECEPÇÃO -->
+  <div class="section s3">
+    <div class="section-header">
+      <div class="section-icon">🖥️</div>
+      <div class="section-meta">
+        <div class="section-label">Módulo 3</div>
+        <div class="section-title">Painel da Recepção (PC / Tablet)</div>
+      </div>
+      <div class="section-count">6 funcionalidades</div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">3.1</div>
+      <div class="feature-body">
+        <div class="feature-title">Dashboard em tempo real <span class="tag tag-rec">Recepção</span></div>
+        <div class="feature-desc">Visão geral: quantas crianças estão no kids, quais pulseiras estão ativas, quais chamadas estão abertas, status de cada pulseira (online/offline/bateria baixa).</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">3.2</div>
+      <div class="feature-body">
+        <div class="feature-title">Lista de crianças presentes <span class="tag tag-rec">Recepção</span></div>
+        <div class="feature-desc">Tabela com todas as crianças do dia, número da pulseira do pai, horário de entrada e status. Filtrável por nome, número ou turma.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">3.3</div>
+      <div class="feature-body">
+        <div class="feature-title">Gestão de pulseiras <span class="tag tag-rec">Recepção</span></div>
+        <div class="feature-desc">Tela para ver quais pulseiras estão disponíveis, quais estão em uso, nível de bateria de cada uma e última vez que foram usadas.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">3.4</div>
+      <div class="feature-body">
+        <div class="feature-title">Check-out (saída da criança) <span class="tag tag-rec">Recepção</span></div>
+        <div class="feature-desc">Ao final do culto, o pai apresenta a pulseira na recepção. O sistema faz o check-out da criança e libera a pulseira para limpeza e recarga.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">3.5</div>
+      <div class="feature-body">
+        <div class="feature-title">Histórico e relatórios <span class="tag tag-rec">Recepção</span></div>
+        <div class="feature-desc">Relatório por culto: quantas crianças, quantas chamadas, tempo médio de resposta dos pais. Útil para o gestor da área kids acompanhar o crescimento.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">3.6</div>
+      <div class="feature-body">
+        <div class="feature-title">Configurações do sistema <span class="tag tag-rec">Recepção</span></div>
+        <div class="feature-desc">Cadastrar gateways, configurar tempo de reacionamento automático, definir cores da pulseira por tipo de chamada, gerenciar usuários (recepcionistas e tias).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: APP MOBILE TIA -->
+  <div class="section s4">
+    <div class="section-header">
+      <div class="section-icon">📱</div>
+      <div class="section-meta">
+        <div class="section-label">Módulo 4</div>
+        <div class="section-title">App Mobile (Tia da Sala)</div>
+      </div>
+      <div class="section-count">5 funcionalidades</div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">4.1</div>
+      <div class="feature-body">
+        <div class="feature-title">Login simples por código <span class="tag tag-mob">Mobile</span></div>
+        <div class="feature-desc">A tia não precisa criar conta. A recepção gera um código de acesso do dia (ex: 4821) e ela digita no celular. Acesso expira ao final do culto.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">4.2</div>
+      <div class="feature-body">
+        <div class="feature-title">Scanner de QR Code nativo <span class="tag tag-mob">Mobile</span></div>
+        <div class="feature-desc">Abre a câmera direto pelo app ou pelo navegador. Lê a etiqueta da criança e já mostra o botão "Chamar pai" na tela — 2 toques.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">4.3</div>
+      <div class="feature-body">
+        <div class="feature-title">Busca por nome ou número <span class="tag tag-mob">Mobile</span></div>
+        <div class="feature-desc">Se a etiqueta caiu ou está ilegível, a tia digita o nome ou número da criança e encontra na hora. Lista filtrada em tempo real.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">4.4</div>
+      <div class="feature-body">
+        <div class="feature-title">Lista da sua turma <span class="tag tag-mob">Mobile</span></div>
+        <div class="feature-desc">A tia vê só as crianças da sua sala. Se houver várias salas, cada tia acessa apenas a sua. Evita confusão e chamadas erradas.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">4.5</div>
+      <div class="feature-body">
+        <div class="feature-title">Notificação de confirmação <span class="tag tag-mob">Mobile</span></div>
+        <div class="feature-desc">Quando a recepção confirma que o pai chegou, o celular da tia vibra e mostra "✅ Pai de [nome] chegou". Ela sabe que pode continuar a aula.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: SEGURANÇA -->
+  <div class="section s6">
+    <div class="section-header">
+      <div class="section-icon">🔒</div>
+      <div class="section-meta">
+        <div class="section-label">Módulo 5</div>
+        <div class="section-title">Segurança e Controle de Saída</div>
+      </div>
+      <div class="section-count">4 funcionalidades</div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">5.1</div>
+      <div class="feature-body">
+        <div class="feature-title">Liberação de saída por pulseira <span class="tag tag-seg">Segurança</span></div>
+        <div class="feature-desc">A criança só é liberada quando o pai apresenta a pulseira correspondente na recepção. Sistema valida o par pulseira ↔ criança.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">5.2</div>
+      <div class="feature-body">
+        <div class="feature-title">Autorização de terceiros <span class="tag tag-seg">Segurança</span></div>
+        <div class="feature-desc">Pai pode cadastrar no check-in que outra pessoa (avó, tio) pode buscar a criança. Sistema registra o nome do autorizado.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">5.3</div>
+      <div class="feature-body">
+        <div class="feature-title">Alerta de pulseira fora do alcance <span class="tag tag-hw">Hardware</span></div>
+        <div class="feature-desc">Se a pulseira sair do alcance dos gateways (pai saiu do prédio sem dar check-out), o sistema alerta a recepção.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">5.4</div>
+      <div class="feature-body">
+        <div class="feature-title">Log de todos os eventos <span class="tag tag-seg">Segurança</span></div>
+        <div class="feature-desc">Registro com horário de tudo: entrada, chamadas, quem acionou, quando o pai chegou, saída. Auditável pelo gestor.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: FUTURO -->
+  <div class="section s5">
+    <div class="section-header">
+      <div class="section-icon">🚀</div>
+      <div class="section-meta">
+        <div class="section-label">Módulo 6</div>
+        <div class="section-title">Funcionalidades Futuras</div>
+      </div>
+      <div class="section-count">5 ideias</div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">6.1</div>
+      <div class="feature-body">
+        <div class="feature-title">Notificação por WhatsApp <span class="tag tag-future">Futuro</span></div>
+        <div class="feature-desc">Se o pai não responder à pulseira em X minutos, o sistema envia mensagem automática no WhatsApp: "Seu filho [nome] está precisando de você na recepção."</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">6.2</div>
+      <div class="feature-body">
+        <div class="feature-title">Múltiplas igrejas / filiais <span class="tag tag-future">Futuro</span></div>
+        <div class="feature-desc">Um único sistema central gerencia várias igrejas da mesma rede. Relatórios consolidados e gestão centralizada.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">6.3</div>
+      <div class="feature-body">
+        <div class="feature-title">Presença e frequência <span class="tag tag-future">Futuro</span></div>
+        <div class="feature-desc">Histórico automático de presença das crianças. Relatório mensal de frequência para o pastor ou líder de kids.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">6.4</div>
+      <div class="feature-body">
+        <div class="feature-title">Integração com sistema da igreja <span class="tag tag-future">Futuro</span></div>
+        <div class="feature-desc">Importar membros cadastrados em sistemas como Totvs Church, Ekklesia ou planilha Excel. Evita recadastrar famílias já existentes.</div>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-num">6.5</div>
+      <div class="feature-body">
+        <div class="feature-title">Vibração na pulseira <span class="tag tag-future">Futuro</span></div>
+        <div class="feature-desc">Adicionar motor de vibração (haptic) para chamar atenção do pai mesmo em ambientes escuros ou quando ele não está olhando para o pulso.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRIORITY MATRIX -->
+  <div class="matrix">
+    <div class="matrix-title">📊 Matriz de Prioridade — O que construir primeiro</div>
+    <div class="matrix-grid">
+      <div class="matrix-cell q1">
+        <div class="matrix-cell-label">🔴 MVP — Fase 1 (essencial)</div>
+        <div class="matrix-items">
+          <div class="matrix-item">Cadastro rápido (nome + pulseira)</div>
+          <div class="matrix-item">Chamar por nome ou número</div>
+          <div class="matrix-item">LED acende / apaga</div>
+          <div class="matrix-item">Dashboard básico na recepção</div>
+          <div class="matrix-item">Modo sem impressora</div>
+        </div>
+      </div>
+      <div class="matrix-cell q2">
+        <div class="matrix-cell-label">🔵 Fase 2 (muito útil)</div>
+        <div class="matrix-items">
+          <div class="matrix-item">App mobile da tia</div>
+          <div class="matrix-item">Scanner de QR Code</div>
+          <div class="matrix-item">Impressão de etiqueta</div>
+          <div class="matrix-item">Motivo da chamada (cor)</div>
+          <div class="matrix-item">Cadastro recorrente</div>
+        </div>
+      </div>
+      <div class="matrix-cell q3">
+        <div class="matrix-cell-label">🟡 Fase 3 (segurança)</div>
+        <div class="matrix-items">
+          <div class="matrix-item">Liberação de saída</div>
+          <div class="matrix-item">Autorização de terceiros</div>
+          <div class="matrix-item">Alerta de pulseira offline</div>
+          <div class="matrix-item">Reacionamento automático</div>
+          <div class="matrix-item">Log de eventos</div>
+        </div>
+      </div>
+      <div class="matrix-cell q4">
+        <div class="matrix-cell-label">⚪ Fase 4 (crescimento)</div>
+        <div class="matrix-items">
+          <div class="matrix-item">WhatsApp automático</div>
+          <div class="matrix-item">Relatórios de frequência</div>
+          <div class="matrix-item">Múltiplas filiais</div>
+          <div class="matrix-item">Vibração na pulseira</div>
+          <div class="matrix-item">Foto da criança</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-label">Sistema Kids · v1.0 · Base de funcionalidades</div>
+    <div class="total-features">31 funcionalidades · 4 fases de entrega</div>
+  </footer>
+
+</div>
+</body>
+</html>

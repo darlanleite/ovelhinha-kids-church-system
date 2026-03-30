@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagrama do Sistema de Pulseira</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --border: #1e2d45;
+    --accent-blue: #3b82f6;
+    --accent-cyan: #06b6d4;
+    --accent-green: #10b981;
+    --accent-orange: #f59e0b;
+    --accent-purple: #8b5cf6;
+    --accent-red: #ef4444;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --text-mid: #94a3b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 32px 20px;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(59,130,246,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 80% 80%, rgba(16,185,129,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  header h1 {
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  header p {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* LAYERS */
+  .layer {
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .layer-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+
+  .layer-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* NODES */
+  .node {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 140px;
+    max-width: 200px;
+    flex: 1;
+    position: relative;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    cursor: default;
+  }
+
+  .node:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+
+  .node.tablet {
+    border-color: rgba(139,92,246,0.5);
+    box-shadow: 0 0 24px rgba(139,92,246,0.08);
+  }
+  .node.tablet:hover { border-color: var(--accent-purple); box-shadow: 0 12px 40px rgba(139,92,246,0.2); }
+
+  .node.router {
+    border-color: rgba(245,158,11,0.5);
+    box-shadow: 0 0 24px rgba(245,158,11,0.08);
+  }
+  .node.router:hover { border-color: var(--accent-orange); box-shadow: 0 12px 40px rgba(245,158,11,0.2); }
+
+  .node.gateway {
+    border-color: rgba(6,182,212,0.5);
+    box-shadow: 0 0 24px rgba(6,182,212,0.08);
+  }
+  .node.gateway:hover { border-color: var(--accent-cyan); box-shadow: 0 12px 40px rgba(6,182,212,0.2); }
+
+  .node.wristband {
+    border-color: rgba(16,185,129,0.5);
+    box-shadow: 0 0 24px rgba(16,185,129,0.08);
+    min-width: 110px;
+    padding: 14px 16px;
+  }
+  .node.wristband:hover { border-color: var(--accent-green); box-shadow: 0 12px 40px rgba(16,185,129,0.2); }
+
+  .node-icon {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .node-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-align: center;
+    color: #fff;
+    line-height: 1.3;
+  }
+
+  .node-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .node-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    padding: 2px 7px;
+    border-radius: 99px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .badge-wifi { background: rgba(245,158,11,0.2); color: var(--accent-orange); border: 1px solid rgba(245,158,11,0.3); }
+  .badge-ble  { background: rgba(6,182,212,0.2);  color: var(--accent-cyan);   border: 1px solid rgba(6,182,212,0.3); }
+  .badge-main { background: rgba(139,92,246,0.2); color: var(--accent-purple); border: 1px solid rgba(139,92,246,0.3); }
+
+  /* ARROWS */
+  .arrow-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 4px 0;
+    gap: 4px;
+  }
+
+  .arrow-line {
+    width: 2px;
+    height: 28px;
+    background: linear-gradient(to bottom, var(--border), var(--border));
+    position: relative;
+  }
+
+  .arrow-line::after {
+    content: '▼';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6rem;
+  }
+
+  .arrow-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 99px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+  }
+
+  .arrow-label.wifi {
+    background: rgba(245,158,11,0.1);
+    color: var(--accent-orange);
+    border: 1px solid rgba(245,158,11,0.25);
+  }
+  .arrow-label.ble {
+    background: rgba(6,182,212,0.1);
+    color: var(--accent-cyan);
+    border: 1px solid rgba(6,182,212,0.25);
+  }
+
+  .arrow-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  .arrow-dot.wifi { background: var(--accent-orange); }
+  .arrow-dot.ble  { background: var(--accent-cyan); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.6); }
+  }
+
+  /* MULTI-ARROW (gateway to wristbands) */
+  .multi-arrow {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0;
+    margin: 8px 0;
+    position: relative;
+  }
+
+  .multi-arrow-svg {
+    width: 100%;
+    max-width: 700px;
+    height: 60px;
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 36px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-mid);
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  /* SPECS TABLE */
+  .specs {
+    margin-top: 36px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .specs-title {
+    padding: 14px 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+
+  .specs-row {
+    display: flex;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+    gap: 12px;
+    align-items: center;
+    transition: background 0.15s;
+  }
+
+  .specs-row:last-child { border-bottom: none; }
+  .specs-row:hover { background: rgba(255,255,255,0.02); }
+
+  .specs-component {
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: #fff;
+    min-width: 160px;
+  }
+
+  .specs-detail {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    flex: 1;
+  }
+
+  .specs-price {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent-green);
+    white-space: nowrap;
+  }
+
+  .specs-qty {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* TOTAL */
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: rgba(16,185,129,0.05);
+    border-top: 1.5px solid rgba(16,185,129,0.2);
+    margin-top: 2px;
+  }
+
+  .total-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-mid);
+  }
+
+  .total-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    color: var(--accent-green);
+    font-weight: 700;
+  }
+
+  /* FLOW DESCRIPTION */
+  .flow {
+    margin-top: 28px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+
+  .flow-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    margin-bottom: 16px;
+  }
+
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(59,130,246,0.15);
+    border: 1px solid rgba(59,130,246,0.3);
+    color: var(--accent-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
+  .step-text {
+    font-size: 0.8rem;
+    color: var(--text-mid);
+    line-height: 1.5;
+    padding-top: 2px;
+  }
+
+  .step-text strong { color: #fff; }
+
+  @media (max-width: 520px) {
+    .node { min-width: 100px; padding: 14px; }
+    .specs-component { min-width: 120px; }
+    .specs-detail { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <h1>Sistema de Pulseira — Igreja Kids</h1>
+    <p>Arquitetura de comunicação · BLE + Wi-Fi · ESP32-C3</p>
+  </header>
+
+  <!-- LAYER 1: TABLET -->
+  <div class="layer">
+    <div class="layer-label">① Recepção</div>
+    <div class="layer-row">
+      <div class="node tablet">
+        <span class="node-badge badge-main">Software</span>
+        <div class="node-icon">💻</div>
+        <div class="node-title">Tablet / Notebook</div>
+        <div class="node-sub">Sistema de cadastro<br>e acionamento</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROW 1 -->
+  <div class="arrow-block">
+    <div class="arrow-label wifi">
+      <span class="arrow-dot wifi"></span>
+      Wi-Fi · HTTP / WebSocket
+    </div>
+    <div class="arrow-line" style="color: var(--accent-orange)"></div>
+  </div>
+
+  <!-- LAYER 2: ROUTER -->
+  <div class="layer">
+    <div class="layer-label">② Rede local</div>
+    <div class="layer-row">
+      <div class="node router">
+        <span class="node-badge badge-wifi">Wi-Fi</span>
+        <div class="node-icon">📡</div>
+        <div class="node-title">Roteador da Igreja</div>
+        <div class="node-sub">Wi-Fi 2.4GHz<br>já existente</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROW 2 -->
+  <div class="arrow-block">
+    <div class="arrow-label wifi">
+      <span class="arrow-dot wifi"></span>
+      Wi-Fi · Distribui para gateways
+    </div>
+    <div class="arrow-line" style="color: var(--accent-orange)"></div>
+  </div>
+
+  <!-- LAYER 3: GATEWAYS -->
+  <div class="layer">
+    <div class="layer-label">③ Gateways fixos (ESP32-C3 na tomada)</div>
+    <div class="layer-row">
+      <div class="node gateway">
+        <span class="node-badge badge-ble">BLE + Wi-Fi</span>
+        <div class="node-icon">🔌</div>
+        <div class="node-title">Gateway 1</div>
+        <div class="node-sub">Ala principal<br>Cobertura ~50m</div>
+      </div>
+      <div class="node gateway">
+        <span class="node-badge badge-ble">BLE + Wi-Fi</span>
+        <div class="node-icon">🔌</div>
+        <div class="node-title">Gateway 2</div>
+        <div class="node-sub">Ala lateral<br>Cobertura ~50m</div>
+      </div>
+      <div class="node gateway">
+        <span class="node-badge badge-ble">BLE + Wi-Fi</span>
+        <div class="node-icon">🔌</div>
+        <div class="node-title">Gateway 3</div>
+        <div class="node-sub">Corredor / Saída<br>Cobertura ~50m</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROW 3 -->
+  <div class="arrow-block">
+    <div class="arrow-label ble">
+      <span class="arrow-dot ble"></span>
+      BLE 5.0 · Comando individual por ID
+    </div>
+    <div class="arrow-line" style="color: var(--accent-cyan)"></div>
+  </div>
+
+  <!-- LAYER 4: WRISTBANDS -->
+  <div class="layer">
+    <div class="layer-label">④ Pulseiras nos pais (ESP32-C3 + LED RGB)</div>
+    <div class="layer-row">
+      <div class="node wristband">
+        <div class="node-icon">⌚</div>
+        <div class="node-title">Pulseira #001</div>
+        <div class="node-sub">Pai — João</div>
+      </div>
+      <div class="node wristband">
+        <div class="node-icon">⌚</div>
+        <div class="node-title">Pulseira #002</div>
+        <div class="node-sub">Pai — Carlos</div>
+      </div>
+      <div class="node wristband">
+        <div class="node-icon">⌚</div>
+        <div class="node-title">Pulseira #003</div>
+        <div class="node-sub">Mãe — Ana</div>
+      </div>
+      <div class="node wristband">
+        <div class="node-icon">⌚</div>
+        <div class="node-title">Pulseira #...</div>
+        <div class="node-sub">até 150 pais</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background: var(--accent-orange)"></div>
+      Wi-Fi (rede local existente)
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: var(--accent-cyan)"></div>
+      BLE 5.0 (Bluetooth Low Energy)
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: var(--accent-green)"></div>
+      Pulseira (ESP32-C3 + LED RGB)
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: var(--accent-purple)"></div>
+      Software (tablet/notebook)
+    </div>
+  </div>
+
+  <!-- FLOW -->
+  <div class="flow">
+    <div class="flow-title">📋 Fluxo de acionamento</div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <div class="step-text">Recepcionista clica em <strong>"Chamar pai"</strong> no tablet</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div class="step-text">Sistema envia comando via <strong>Wi-Fi</strong> ao roteador da igreja</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div class="step-text">Roteador repassa ao <strong>gateway mais próximo</strong> da pulseira</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div class="step-text">Gateway envia via <strong>BLE</strong> para a pulseira específica pelo ID</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">5</div>
+        <div class="step-text"><strong>LED da pulseira acende</strong> (vermelho piscando) — pai se levanta</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">6</div>
+        <div class="step-text">Recepcionista clica <strong>"Encerrar"</strong> → LED apaga</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPECS -->
+  <div class="specs">
+    <div class="specs-title">🛒 Lista de componentes — 50 pulseiras</div>
+
+    <div class="specs-row">
+      <div class="specs-component">ESP32-C3 Super Mini</div>
+      <div class="specs-detail">Pulseiras (50) + Gateways (3) = 53 unidades</div>
+      <div class="specs-qty">53 un.</div>
+      <div class="specs-price">~R$ 764</div>
+    </div>
+    <div class="specs-row">
+      <div class="specs-component">LED RGB 5mm</div>
+      <div class="specs-detail">Um por pulseira · cátodo comum</div>
+      <div class="specs-qty">50 un.</div>
+      <div class="specs-price">~R$ 25</div>
+    </div>
+    <div class="specs-row">
+      <div class="specs-component">Bateria LiPo 500mAh</div>
+      <div class="specs-detail">3.7V · autonomia ~8h por carga</div>
+      <div class="specs-qty">50 un.</div>
+      <div class="specs-price">~R$ 750</div>
+    </div>
+    <div class="specs-row">
+      <div class="specs-component">Módulo TP4056</div>
+      <div class="specs-detail">Carregador de bateria via USB-C</div>
+      <div class="specs-qty">50 un.</div>
+      <div class="specs-price">~R$ 80</div>
+    </div>
+    <div class="specs-row">
+      <div class="specs-component">Resistores 220Ω</div>
+      <div class="specs-detail">Proteção dos pinos do LED</div>
+      <div class="specs-qty">kit</div>
+      <div class="specs-price">~R$ 10</div>
+    </div>
+    <div class="specs-row">
+      <div class="specs-component">Cases / Pulseiras</div>
+      <div class="specs-detail">Relógio infantil barato ou impressão 3D</div>
+      <div class="specs-qty">50 un.</div>
+      <div class="specs-price">~R$ 400</div>
+    </div>
+    <div class="specs-row">
+      <div class="specs-component">Fonte USB (gateways)</div>
+      <div class="specs-detail">Carregadores na tomada para os 3 gateways</div>
+      <div class="specs-qty">3 un.</div>
+      <div class="specs-price">~R$ 45</div>
+    </div>
+
+    <div class="total-row">
+      <div class="total-label">Total estimado · 50 pulseiras</div>
+      <div class="total-value">~R$ 2.074</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

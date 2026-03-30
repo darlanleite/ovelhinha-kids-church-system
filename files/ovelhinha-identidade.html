@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ovelhinha — Identidade Visual</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    --primary: #5B8CFF;
+    --primary-dark: #3D6FE8;
+    --primary-light: #EEF3FF;
+    --secondary: #FFB347;
+    --secondary-light: #FFF5E6;
+    --green: #3ECFAA;
+    --red: #FF6B6B;
+    --ink: #1A1F36;
+    --ink-mid: #6B7280;
+    --ink-dim: #C4C9D4;
+    --bg: #F8F9FC;
+    --white: #FFFFFF;
+    --wool: #F0EDE8;
+    --wool-dark: #D9D4CC;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+    padding: 40px 20px 80px;
+  }
+
+  .wrapper { max-width: 900px; margin: 0 auto; }
+
+  /* PAGE HEADER */
+  .page-header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+
+  .page-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .page-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .page-sub {
+    margin-top: 10px;
+    font-size: 0.95rem;
+    color: var(--ink-mid);
+  }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid #E8EAF0;
+  }
+
+  .section { margin-bottom: 48px; }
+
+  /* LOGO SHOWCASE */
+  .logo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .logo-card {
+    border-radius: 20px;
+    padding: 48px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .logo-card.light { background: var(--white); border: 1.5px solid #E8EAF0; }
+  .logo-card.dark  { background: var(--ink); }
+  .logo-card.primary { background: var(--primary); }
+  .logo-card.wool { background: var(--wool); border: 1.5px solid var(--wool-dark); }
+
+  .logo-mark {
+    position: relative;
+    width: 80px;
+    height: 80px;
+  }
+
+  /* SVG LOGO */
+  .logo-lockup {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-text-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .logo-name {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .logo-tagline {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-top: 3px;
+  }
+
+  .logo-card.light .logo-name { color: var(--ink); }
+  .logo-card.light .logo-tagline { color: var(--ink-mid); }
+
+  .logo-card.dark .logo-name { color: var(--white); }
+  .logo-card.dark .logo-tagline { color: rgba(255,255,255,0.5); }
+
+  .logo-card.primary .logo-name { color: var(--white); }
+  .logo-card.primary .logo-tagline { color: rgba(255,255,255,0.7); }
+
+  .logo-card.wool .logo-name { color: var(--ink); }
+  .logo-card.wool .logo-tagline { color: var(--ink-mid); }
+
+  .logo-card-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .logo-card.light .logo-card-label { color: var(--ink-dim); }
+  .logo-card.dark .logo-card-label { color: rgba(255,255,255,0.3); }
+  .logo-card.primary .logo-card-label { color: rgba(255,255,255,0.5); }
+  .logo-card.wool .logo-card-label { color: var(--ink-dim); }
+
+  /* ICON ONLY ROW */
+  .icon-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .icon-card {
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .icon-card.ic-light { background: var(--white); border: 1.5px solid #E8EAF0; }
+  .icon-card.ic-blue  { background: var(--primary); }
+  .icon-card.ic-dark  { background: var(--ink); }
+  .icon-card.ic-secondary { background: var(--secondary); }
+
+  .icon-card-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .icon-card.ic-light .icon-card-label { color: var(--ink-dim); }
+  .icon-card.ic-blue .icon-card-label,
+  .icon-card.ic-dark .icon-card-label,
+  .icon-card.ic-secondary .icon-card-label { color: rgba(255,255,255,0.6); }
+
+  /* COLORS */
+  .color-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+
+  .color-card {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1.5px solid #E8EAF0;
+  }
+
+  .color-swatch {
+    height: 80px;
+  }
+
+  .color-info {
+    padding: 12px;
+    background: var(--white);
+  }
+
+  .color-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .color-hex {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--ink-mid);
+    letter-spacing: 0.05em;
+  }
+
+  .color-role {
+    font-size: 0.6rem;
+    color: var(--ink-dim);
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* TYPOGRAPHY */
+  .type-section {
+    background: var(--white);
+    border: 1.5px solid #E8EAF0;
+    border-radius: 20px;
+    padding: 32px;
+  }
+
+  .type-row {
+    padding: 20px 0;
+    border-bottom: 1px solid #F0F2F8;
+  }
+
+  .type-row:last-child { border-bottom: none; }
+
+  .type-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 8px;
+  }
+
+  .type-display {
+    font-family: 'Nunito', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+
+  .type-heading {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--ink);
+  }
+
+  .type-body {
+    font-size: 0.95rem;
+    color: var(--ink-mid);
+    line-height: 1.6;
+    max-width: 480px;
+  }
+
+  .type-mono {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--primary);
+    background: var(--primary-light);
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  /* APP PREVIEW */
+  .app-preview {
+    background: var(--white);
+    border: 1.5px solid #E8EAF0;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .app-topbar {
+    background: var(--primary);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .app-topbar-text {
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+  }
+
+  .app-topbar-sub {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.72rem;
+    margin-left: auto;
+  }
+
+  .app-body {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .app-stat {
+    background: var(--bg);
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+  }
+
+  .app-stat-num {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--primary);
+  }
+
+  .app-stat-label {
+    font-size: 0.72rem;
+    color: var(--ink-mid);
+    margin-top: 4px;
+  }
+
+  .app-call {
+    margin: 0 24px 24px;
+    background: #FFF5F5;
+    border: 1.5px solid #FFCDD2;
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .app-call-dot {
+    width: 10px; height: 10px;
+    background: var(--red);
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: blink 1.2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .app-call-info { flex: 1; }
+  .app-call-name { font-weight: 700; font-size: 0.9rem; }
+  .app-call-reason { font-size: 0.75rem; color: var(--ink-mid); }
+
+  .app-call-btn {
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* TAGLINES */
+  .tagline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tagline-item {
+    background: var(--white);
+    border: 1.5px solid #E8EAF0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .tagline-icon { font-size: 1.2rem; }
+
+  .tagline-text {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .tagline-note {
+    font-size: 0.75rem;
+    color: var(--ink-mid);
+    margin-top: 2px;
+  }
+
+  .tagline-star {
+    margin-left: auto;
+    font-size: 0.65rem;
+    color: var(--secondary);
+    background: var(--secondary-light);
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-weight: 700;
+  }
+
+  @media (max-width: 600px) {
+    .logo-grid { grid-template-columns: 1fr; }
+    .icon-row { grid-template-columns: repeat(2, 1fr); }
+    .color-row { grid-template-columns: repeat(2, 1fr); }
+    .app-body { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="page-header">
+    <div class="page-tag">Identidade Visual</div>
+    <h1 class="page-title">🐑 Ovelhinha</h1>
+    <p class="page-sub">Sistema de gestão kids para igrejas · Brand Guidelines v1.0</p>
+  </div>
+
+  <!-- LOGO -->
+  <div class="section">
+    <div class="section-title">Logo — Variações</div>
+    <div class="logo-grid">
+
+      <!-- LIGHT -->
+      <div class="logo-card light">
+        <div class="logo-lockup">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+            <!-- Corpo da lã -->
+            <circle cx="22" cy="26" r="13" fill="#F0EDE8"/>
+            <circle cx="34" cy="26" r="11" fill="#F0EDE8"/>
+            <circle cx="28" cy="20" r="11" fill="#F0EDE8"/>
+            <circle cx="18" cy="22" r="9" fill="#F0EDE8"/>
+            <circle cx="36" cy="22" r="9" fill="#F0EDE8"/>
+            <!-- Rosto -->
+            <ellipse cx="28" cy="31" rx="9" ry="8" fill="#5B8CFF"/>
+            <!-- Olhos -->
+            <circle cx="25" cy="30" r="1.5" fill="white"/>
+            <circle cx="31" cy="30" r="1.5" fill="white"/>
+            <!-- Nariz/boca -->
+            <ellipse cx="28" cy="33.5" rx="2" ry="1.2" fill="#3D6FE8"/>
+            <!-- Pulseira -->
+            <rect x="38" y="34" width="12" height="5" rx="2.5" fill="#FFB347"/>
+            <circle cx="44" cy="36.5" r="1.5" fill="#FF8C00" opacity="0.7"/>
+            <!-- Perninhas -->
+            <rect x="22" y="38" width="4" height="8" rx="2" fill="#D9D4CC"/>
+            <rect x="30" y="38" width="4" height="8" rx="2" fill="#D9D4CC"/>
+          </svg>
+          <div class="logo-text-group">
+            <span class="logo-name" style="color:#1A1F36">Ovelhinha</span>
+            <span class="logo-tagline" style="color:#6B7280">Cada criança, no lugar certo</span>
+          </div>
+        </div>
+        <div class="logo-card-label" style="color:#C4C9D4">Fundo claro · Uso padrão</div>
+      </div>
+
+      <!-- DARK -->
+      <div class="logo-card dark">
+        <div class="logo-lockup">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+            <circle cx="22" cy="26" r="13" fill="#2D3348"/>
+            <circle cx="34" cy="26" r="11" fill="#2D3348"/>
+            <circle cx="28" cy="20" r="11" fill="#2D3348"/>
+            <circle cx="18" cy="22" r="9" fill="#2D3348"/>
+            <circle cx="36" cy="22" r="9" fill="#2D3348"/>
+            <ellipse cx="28" cy="31" rx="9" ry="8" fill="#5B8CFF"/>
+            <circle cx="25" cy="30" r="1.5" fill="white"/>
+            <circle cx="31" cy="30" r="1.5" fill="white"/>
+            <ellipse cx="28" cy="33.5" rx="2" ry="1.2" fill="#3D6FE8"/>
+            <rect x="38" y="34" width="12" height="5" rx="2.5" fill="#FFB347"/>
+            <circle cx="44" cy="36.5" r="1.5" fill="#FF8C00" opacity="0.7"/>
+            <rect x="22" y="38" width="4" height="8" rx="2" fill="#3D4460"/>
+            <rect x="30" y="38" width="4" height="8" rx="2" fill="#3D4460"/>
+          </svg>
+          <div class="logo-text-group">
+            <span class="logo-name" style="color:white">Ovelhinha</span>
+            <span class="logo-tagline" style="color:rgba(255,255,255,0.5)">Cada criança, no lugar certo</span>
+          </div>
+        </div>
+        <div class="logo-card-label" style="color:rgba(255,255,255,0.25)">Fundo escuro</div>
+      </div>
+
+      <!-- PRIMARY -->
+      <div class="logo-card primary">
+        <div class="logo-lockup">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+            <circle cx="22" cy="26" r="13" fill="rgba(255,255,255,0.25)"/>
+            <circle cx="34" cy="26" r="11" fill="rgba(255,255,255,0.25)"/>
+            <circle cx="28" cy="20" r="11" fill="rgba(255,255,255,0.25)"/>
+            <circle cx="18" cy="22" r="9" fill="rgba(255,255,255,0.25)"/>
+            <circle cx="36" cy="22" r="9" fill="rgba(255,255,255,0.25)"/>
+            <ellipse cx="28" cy="31" rx="9" ry="8" fill="white"/>
+            <circle cx="25" cy="30" r="1.5" fill="#5B8CFF"/>
+            <circle cx="31" cy="30" r="1.5" fill="#5B8CFF"/>
+            <ellipse cx="28" cy="33.5" rx="2" ry="1.2" fill="#3D6FE8"/>
+            <rect x="38" y="34" width="12" height="5" rx="2.5" fill="#FFB347"/>
+            <circle cx="44" cy="36.5" r="1.5" fill="#FF8C00" opacity="0.9"/>
+            <rect x="22" y="38" width="4" height="8" rx="2" fill="rgba(255,255,255,0.4)"/>
+            <rect x="30" y="38" width="4" height="8" rx="2" fill="rgba(255,255,255,0.4)"/>
+          </svg>
+          <div class="logo-text-group">
+            <span class="logo-name" style="color:white">Ovelhinha</span>
+            <span class="logo-tagline" style="color:rgba(255,255,255,0.7)">Cada criança, no lugar certo</span>
+          </div>
+        </div>
+        <div class="logo-card-label" style="color:rgba(255,255,255,0.4)">Fundo primário</div>
+      </div>
+
+      <!-- WOOL -->
+      <div class="logo-card wool">
+        <div class="logo-lockup">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+            <circle cx="22" cy="26" r="13" fill="white"/>
+            <circle cx="34" cy="26" r="11" fill="white"/>
+            <circle cx="28" cy="20" r="11" fill="white"/>
+            <circle cx="18" cy="22" r="9" fill="white"/>
+            <circle cx="36" cy="22" r="9" fill="white"/>
+            <ellipse cx="28" cy="31" rx="9" ry="8" fill="#5B8CFF"/>
+            <circle cx="25" cy="30" r="1.5" fill="white"/>
+            <circle cx="31" cy="30" r="1.5" fill="white"/>
+            <ellipse cx="28" cy="33.5" rx="2" ry="1.2" fill="#3D6FE8"/>
+            <rect x="38" y="34" width="12" height="5" rx="2.5" fill="#FFB347"/>
+            <circle cx="44" cy="36.5" r="1.5" fill="#FF8C00" opacity="0.7"/>
+            <rect x="22" y="38" width="4" height="8" rx="2" fill="#D9D4CC"/>
+            <rect x="30" y="38" width="4" height="8" rx="2" fill="#D9D4CC"/>
+          </svg>
+          <div class="logo-text-group">
+            <span class="logo-name" style="color:#1A1F36">Ovelhinha</span>
+            <span class="logo-tagline" style="color:#6B7280">Cada criança, no lugar certo</span>
+          </div>
+        </div>
+        <div class="logo-card-label" style="color:#C4C9D4">Fundo lã · Alternativo</div>
+      </div>
+
+    </div>
+
+    <!-- ICON ONLY -->
+    <div class="icon-row">
+      <div class="icon-card ic-light">
+        <svg width="48" height="48" viewBox="0 0 56 56" fill="none">
+          <circle cx="22" cy="26" r="13" fill="#F0EDE8"/>
+          <circle cx="34" cy="26" r="11" fill="#F0EDE8"/>
+          <circle cx="28" cy="20" r="11" fill="#F0EDE8"/>
+          <circle cx="18" cy="22" r="9" fill="#F0EDE8"/>
+          <circle cx="36" cy="22" r="9" fill="#F0EDE8"/>
+          <ellipse cx="28" cy="31" rx="9" ry="8" fill="#5B8CFF"/>
+          <circle cx="25" cy="30" r="1.5" fill="white"/>
+          <circle cx="31" cy="30" r="1.5" fill="white"/>
+          <ellipse cx="28" cy="33.5" rx="2" ry="1.2" fill="#3D6FE8"/>
+          <rect x="38" y="34" width="12" height="5" rx="2.5" fill="#FFB347"/>
+          <circle cx="44" cy="36.5" r="1.5" fill="#FF8C00" opacity="0.7"/>
+          <rect x="22" y="38" width="4" height="8" rx="2" fill="#D9D4CC"/>
+          <rect x="30" y="38" width="4" height="8" rx="2" fill="#D9D4CC"/>
+        </svg>
+        <div class="icon-card-label" style="color:#C4C9D4">Claro</div>
+      </div>
+      <div class="icon-card ic-blue">
+        <svg width="48" height="48" viewBox="0 0 56 56" fill="none">
+          <circle cx="22" cy="26" r="13" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="34" cy="26" r="11" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="28" cy="20" r="11" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="18" cy="22" r="9" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="36" cy="22" r="9" fill="rgba(255,255,255,0.2)"/>
+          <ellipse cx="28" cy="31" rx="9" ry="8" fill="white"/>
+          <circle cx="25" cy="30" r="1.5" fill="#5B8CFF"/>
+          <circle cx="31" cy="30" r="1.5" fill="#5B8CFF"/>
+          <ellipse cx="28" cy="33.5" rx="2" ry="1.2" fill="#3D6FE8"/>
+          <rect x="38" y="34" width="12" height="5" rx="2.5" fill="#FFB347"/>
+          <circle cx="44" cy="36.5" r="1.5" fill="#FF8C00" opacity="0.9"/>
+          <rect x="22" y="38" width="4" height="8" rx="2" fill="rgba(255,255,255,0.3)"/>
+          <rect x="30" y="38" width="4" height="8" rx="2" fill="rgba(255,255,255,0.3)"/>
+        </svg>
+        <div class="icon-card-label">Azul</div>
+      </div>
+      <div class="icon-card ic-dark">
+        <svg width="48" height="48" viewBox="0 0 56 56" fill="none">
+          <circle cx="22" cy="26" r="13" fill="#2D3348"/>
+          <circle cx="34" cy="26" r="11" fill="#2D3348"/>
+          <circle cx="28" cy="20" r="11" fill="#2D3348"/>
+          <circle cx="18" cy="22" r="9" fill="#2D3348"/>
+          <circle cx="36" cy="22" r="9" fill="#2D3348"/>
+          <ellipse cx="28" cy="31" rx="9" ry="8" fill="#5B8CFF"/>
+          <circle cx="25" cy="30" r="1.5" fill="white"/>
+          <circle cx="31" cy="30" r="1.5" fill="white"/>
+          <ellipse cx="28" cy="33.5" rx="2" ry="1.2" fill="#3D6FE8"/>
+          <rect x="38" y="34" width="12" height="5" rx="2.5" fill="#FFB347"/>
+          <circle cx="44" cy="36.5" r="1.5" fill="#FF8C00"/>
+          <rect x="22" y="38" width="4" height="8" rx="2" fill="#3D4460"/>
+          <rect x="30" y="38" width="4" height="8" rx="2" fill="#3D4460"/>
+        </svg>
+        <div class="icon-card-label">Escuro</div>
+      </div>
+      <div class="icon-card ic-secondary">
+        <svg width="48" height="48" viewBox="0 0 56 56" fill="none">
+          <circle cx="22" cy="26" r="13" fill="rgba(255,255,255,0.3)"/>
+          <circle cx="34" cy="26" r="11" fill="rgba(255,255,255,0.3)"/>
+          <circle cx="28" cy="20" r="11" fill="rgba(255,255,255,0.3)"/>
+          <circle cx="18" cy="22" r="9" fill="rgba(255,255,255,0.3)"/>
+          <circle cx="36" cy="22" r="9" fill="rgba(255,255,255,0.3)"/>
+          <ellipse cx="28" cy="31" rx="9" ry="8" fill="white"/>
+          <circle cx="25" cy="30" r="1.5" fill="#FFB347"/>
+          <circle cx="31" cy="30" r="1.5" fill="#FFB347"/>
+          <ellipse cx="28" cy="33.5" rx="2" ry="1.2" fill="#E8A030"/>
+          <rect x="38" y="34" width="12" height="5" rx="2.5" fill="#5B8CFF"/>
+          <circle cx="44" cy="36.5" r="1.5" fill="#3D6FE8"/>
+          <rect x="22" y="38" width="4" height="8" rx="2" fill="rgba(255,255,255,0.4)"/>
+          <rect x="30" y="38" width="4" height="8" rx="2" fill="rgba(255,255,255,0.4)"/>
+        </svg>
+        <div class="icon-card-label">Âmbar</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLORS -->
+  <div class="section">
+    <div class="section-title">Paleta de Cores</div>
+    <div class="color-row">
+      <div class="color-card">
+        <div class="color-swatch" style="background:#5B8CFF"></div>
+        <div class="color-info">
+          <div class="color-name">Azul Céu</div>
+          <div class="color-hex">#5B8CFF</div>
+          <div class="color-role">Primária</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#FFB347"></div>
+        <div class="color-info">
+          <div class="color-name">Âmbar</div>
+          <div class="color-hex">#FFB347</div>
+          <div class="color-role">Pulseira / Destaque</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#3ECFAA"></div>
+        <div class="color-info">
+          <div class="color-name">Verde Mint</div>
+          <div class="color-hex">#3ECFAA</div>
+          <div class="color-role">Sucesso / OK</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#FF6B6B"></div>
+        <div class="color-info">
+          <div class="color-name">Coral</div>
+          <div class="color-hex">#FF6B6B</div>
+          <div class="color-role">Urgência / Alerta</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#F0EDE8"></div>
+        <div class="color-info">
+          <div class="color-name">Lã</div>
+          <div class="color-hex">#F0EDE8</div>
+          <div class="color-role">Background / Lã</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="section">
+    <div class="section-title">Tipografia</div>
+    <div class="type-section">
+      <div class="type-row">
+        <div class="type-label">Display · Nunito 900 — Títulos e logo</div>
+        <div class="type-display">Ovelhinha</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">Heading · Nunito 800 — Seções e cards</div>
+        <div class="type-heading">Crianças presentes hoje: 42</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">Body · DM Sans 400 — Textos e descrições</div>
+        <div class="type-body">A pulseira #07 foi vinculada a João Silva. O pai será notificado ao acionar o sistema pela recepção ou pela tia da sala.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">Mono · DM Mono — Números e códigos</div>
+        <div class="type-mono">#07 · ESP32:A4:B2:C1</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP PREVIEW -->
+  <div class="section">
+    <div class="section-title">Preview — Sistema em uso</div>
+    <div class="app-preview">
+      <div class="app-topbar">
+        <svg width="28" height="28" viewBox="0 0 56 56" fill="none">
+          <circle cx="22" cy="26" r="13" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="34" cy="26" r="11" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="28" cy="20" r="11" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="18" cy="22" r="9" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="36" cy="22" r="9" fill="rgba(255,255,255,0.2)"/>
+          <ellipse cx="28" cy="31" rx="9" ry="8" fill="white"/>
+          <circle cx="25" cy="30" r="1.5" fill="#5B8CFF"/>
+          <circle cx="31" cy="30" r="1.5" fill="#5B8CFF"/>
+        </svg>
+        <span class="app-topbar-text">Ovelhinha</span>
+        <span class="app-topbar-sub">Domingo · Culto 10h</span>
+      </div>
+      <div class="app-body">
+        <div class="app-stat">
+          <div class="app-stat-num">42</div>
+          <div class="app-stat-label">Crianças</div>
+        </div>
+        <div class="app-stat">
+          <div class="app-stat-num" style="color:#FFB347">38</div>
+          <div class="app-stat-label">Pulseiras ativas</div>
+        </div>
+        <div class="app-stat">
+          <div class="app-stat-num" style="color:#FF6B6B">2</div>
+          <div class="app-stat-label">Chamadas abertas</div>
+        </div>
+      </div>
+      <div class="app-call">
+        <div class="app-call-dot"></div>
+        <div class="app-call-info">
+          <div class="app-call-name">João Silva · Pulseira #07</div>
+          <div class="app-call-reason">😢 Chorando · há 3 min</div>
+        </div>
+        <button class="app-call-btn">Pai Chegou ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAGLINES -->
+  <div class="section">
+    <div class="section-title">Taglines — Opções</div>
+    <div class="tagline-list">
+      <div class="tagline-item">
+        <div class="tagline-icon">🐑</div>
+        <div>
+          <div class="tagline-text">Cada criança, no lugar certo.</div>
+          <div class="tagline-note">Principal · simples e direta</div>
+        </div>
+        <div class="tagline-star">⭐ Favorita</div>
+      </div>
+      <div class="tagline-item">
+        <div class="tagline-icon">💛</div>
+        <div>
+          <div class="tagline-text">Cuidando do rebanho com tecnologia.</div>
+          <div class="tagline-note">Institucional · para igrejas</div>
+        </div>
+      </div>
+      <div class="tagline-item">
+        <div class="tagline-icon">🔔</div>
+        <div>
+          <div class="tagline-text">Quando a tia chama, a pulseira avisa.</div>
+          <div class="tagline-note">Descritiva · explica o produto</div>
+        </div>
+      </div>
+      <div class="tagline-item">
+        <div class="tagline-icon">🙏</div>
+        <div>
+          <div class="tagline-text">Paz pra você. Segurança pra eles.</div>
+          <div class="tagline-note">Emocional · fala com o pai</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

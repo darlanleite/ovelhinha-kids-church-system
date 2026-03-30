@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ovelhinha 🐑 — Projeto</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=DM+Sans:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #F0EDE8;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 48px 20px;
+  }
+
+  .wrapper { max-width: 700px; margin: 0 auto; }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .logo {
+    font-family: 'Nunito', sans-serif;
+    font-size: 3rem;
+    font-weight: 900;
+    color: #1A1F36;
+    letter-spacing: -0.02em;
+  }
+
+  .tagline {
+    font-size: 0.9rem;
+    color: #6B7280;
+    margin-top: 6px;
+  }
+
+  .badge {
+    display: inline-block;
+    background: #5B8CFF;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 99px;
+    margin-top: 12px;
+  }
+
+  .files {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .file-card {
+    background: white;
+    border: 1.5px solid #E8EAF0;
+    border-radius: 16px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  }
+
+  .file-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(91,140,255,0.12);
+    border-color: #5B8CFF;
+  }
+
+  .file-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: #F8F9FC;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .file-info { flex: 1; }
+
+  .file-name {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1A1F36;
+    margin-bottom: 3px;
+  }
+
+  .file-desc {
+    font-size: 0.78rem;
+    color: #6B7280;
+  }
+
+  .file-tag {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 99px;
+    white-space: nowrap;
+  }
+
+  .tag-blue   { background: #EEF3FF; color: #5B8CFF; }
+  .tag-amber  { background: #FFF5E6; color: #FFB347; }
+  .tag-green  { background: #EDFAF5; color: #3ECFAA; }
+  .tag-coral  { background: #FFF0F0; color: #FF6B6B; }
+  .tag-purple { background: #F5F0FF; color: #8B5CF6; }
+
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 0.72rem;
+    color: #C4C9D4;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="logo">🐑 Ovelhinha</div>
+    <div class="tagline">Cada criança, no lugar certo.</div>
+    <span class="badge">Documentação do Projeto</span>
+  </header>
+
+  <div class="files">
+
+    <a class="file-card" href="ovelhinha-identidade.html">
+      <div class="file-icon">🎨</div>
+      <div class="file-info">
+        <div class="file-name">Identidade Visual</div>
+        <div class="file-desc">Logo, paleta de cores, tipografia e brand guidelines completos</div>
+      </div>
+      <span class="file-tag tag-amber">Branding</span>
+    </a>
+
+    <a class="file-card" href="funcionalidades-sistema-kids.html">
+      <div class="file-icon">📋</div>
+      <div class="file-info">
+        <div class="file-name">Funcionalidades</div>
+        <div class="file-desc">31 funcionalidades em 6 módulos com matriz de prioridade por fase</div>
+      </div>
+      <span class="file-tag tag-blue">Produto</span>
+    </a>
+
+    <a class="file-card" href="diagrama-sistema-pulseira.html">
+      <div class="file-icon">📡</div>
+      <div class="file-info">
+        <div class="file-name">Diagrama de Arquitetura</div>
+        <div class="file-desc">Fluxo completo: tablet → Wi-Fi → gateway → BLE → pulseira</div>
+      </div>
+      <span class="file-tag tag-green">Hardware</span>
+    </a>
+
+    <a class="file-card" href="prompt-lovable-kids.html">
+      <div class="file-icon">🤖</div>
+      <div class="file-info">
+        <div class="file-name">Prompt para o Lovable</div>
+        <div class="file-desc">Prompt completo com identidade visual para gerar o sistema no Lovable</div>
+      </div>
+      <span class="file-tag tag-purple">Dev</span>
+    </a>
+
+  </div>
+
+  <footer>
+    Ovelhinha · Sistema de Gestão Kids para Igrejas · v1.0
+  </footer>
+
+</div>
+</body>
+</html>
