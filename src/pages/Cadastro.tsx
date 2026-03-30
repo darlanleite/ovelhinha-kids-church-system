@@ -24,6 +24,7 @@ const Cadastro = () => {
   const [guardian2Phone, setGuardian2Phone] = useState('');
   const [showGuardian2, setShowGuardian2] = useState(false);
   const [braceletNumber, setBraceletNumber] = useState('');
+  const [authorizedPickup, setAuthorizedPickup] = useState('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
