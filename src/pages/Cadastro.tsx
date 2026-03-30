@@ -63,6 +63,7 @@ const Cadastro = () => {
     addChild({
       id, name: childName, birthDate, roomId, medicalNotes, guardians,
       braceletNumber: padded, status: 'present', checkedInAt: new Date().toISOString(),
+      authorizedPickup: authorizedPickup.trim() || null,
     });
     const bracelet = bracelets.find((b) => b.number === padded);
     if (bracelet) {
