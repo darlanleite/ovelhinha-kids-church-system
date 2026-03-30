@@ -49,6 +49,8 @@ const Acionar = () => {
         status: 'open',
         createdAt: new Date().toISOString(),
         answeredAt: null,
+        roomId: child.roomId,
+        answeredBy: null,
       });
       updateChild(child.id, { status: 'called' });
       setCalling(false);

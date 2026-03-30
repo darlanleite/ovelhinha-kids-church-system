@@ -24,6 +24,7 @@ const Cadastro = () => {
   const [guardian2Phone, setGuardian2Phone] = useState('');
   const [showGuardian2, setShowGuardian2] = useState(false);
   const [braceletNumber, setBraceletNumber] = useState('');
+  const [authorizedPickup, setAuthorizedPickup] = useState('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -62,6 +63,7 @@ const Cadastro = () => {
     addChild({
       id, name: childName, birthDate, roomId, medicalNotes, guardians,
       braceletNumber: padded, status: 'present', checkedInAt: new Date().toISOString(),
+      authorizedPickup: authorizedPickup.trim() || null,
     });
     const bracelet = bracelets.find((b) => b.number === padded);
     if (bracelet) {
@@ -151,6 +153,8 @@ const Cadastro = () => {
                 <Field label="Telefone do 2º responsável" value={guardian2Phone} onChange={setGuardian2Phone} />
               </>
             )}
+            <hr className="border-border" />
+            <Field label="Pessoa autorizada a buscar (opcional)" value={authorizedPickup} onChange={setAuthorizedPickup} placeholder="Ex: Avó - Dona Maria" />
           </div>
         )}
 
