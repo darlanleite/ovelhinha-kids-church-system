@@ -4,7 +4,7 @@ interface OvelhinhaLogoProps {
 }
 
 const OvelhinhaLogo = ({ size = 32, white = false }: OvelhinhaLogoProps) => {
-  const woolColor = white ? 'white' : '#F0EDE8';
+  const woolColor = white ? 'white' : '#C8C3BB';
   const legColor = white ? 'rgba(255,255,255,0.7)' : '#D9D4CC';
   const faceColor = white ? 'rgba(255,255,255,0.25)' : '#5B8CFF';
   const eyeColor = white ? '#5B8CFF' : 'white';

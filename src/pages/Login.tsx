@@ -73,7 +73,7 @@ const Login = () => {
                 <Smartphone className="w-7 h-7 text-secondary" />
               </div>
               <div className="text-left">
-                <p className="font-heading font-extrabold text-lg text-foreground">Tia da Sala</p>
+                <p className="font-heading font-extrabold text-lg text-foreground">Salinha</p>
                 <p className="text-sm text-muted-foreground">App mobile para a sala</p>
               </div>
             </button>
@@ -85,7 +85,7 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="bg-card rounded-card shadow-soft p-8 border border-border animate-fade-in">
             <button type="button" onClick={() => setRole(null)} className="text-sm text-muted-foreground mb-4 hover:text-foreground transition-colors">← Voltar</button>
             <h2 className="font-heading font-extrabold text-xl mb-6 text-foreground">
-              {role === 'reception' ? '🖥️ Recepção' : '📱 Tia da Sala'}
+              {role === 'reception' ? '🖥️ Recepção' : '📱 Salinha'}
             </h2>
 
             {role === 'reception' ? (
