@@ -153,6 +153,8 @@ const Cadastro = () => {
                 <Field label="Telefone do 2º responsável" value={guardian2Phone} onChange={setGuardian2Phone} />
               </>
             )}
+            <hr className="border-border" />
+            <Field label="Pessoa autorizada a buscar (opcional)" value={authorizedPickup} onChange={setAuthorizedPickup} placeholder="Ex: Avó - Dona Maria" />
           </div>
         )}
 

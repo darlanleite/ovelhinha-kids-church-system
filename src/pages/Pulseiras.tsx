@@ -33,6 +33,7 @@ const Pulseiras = () => {
       battery: 100,
       guardianName: null,
       childId: null,
+      espId: null,
     });
     toast(`Pulseira #${nextNum} registrada! 🐑`);
   };
