@@ -6,9 +6,9 @@ export interface Child {
   medicalNotes: string;
   guardians: Guardian[];
   braceletNumber: string | null;
+  authorizedPickup: string | null; // pessoa autorizada a buscar (ex: "Avó - Dona Maria")
   status: 'present' | 'called' | 'left';
   checkedInAt: string;
-  authorizedPickup: string | null;
 }
 
 export interface Guardian {
@@ -20,24 +20,24 @@ export interface Guardian {
 export interface Bracelet {
   id: string;
   number: string;
+  espId: string | null; // MAC address do ESP32 (ex: "A4:B2:C1:D3")
   status: 'available' | 'in-use' | 'charging' | 'offline';
   battery: number;
   guardianName: string | null;
   childId: string | null;
-  espId: string | null;
 }
 
 export interface Call {
   id: string;
   childId: string;
   braceletNumber: string;
+  roomId: string; // sala de onde partiu a chamada
   reason: string;
   reasonIcon: string;
   status: 'open' | 'answered' | 'reactivated';
+  answeredBy: 'reception' | 'tia' | null; // quem encerrou a chamada
   createdAt: string;
   answeredAt: string | null;
-  roomId: string;
-  answeredBy: 'reception' | 'tia' | null;
 }
 
 export interface Room {
