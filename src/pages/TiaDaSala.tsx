@@ -89,7 +89,7 @@ const TiaDaSala = () => {
       )}
 
       {/* Header */}
-      <header className="bg-primary px-4 py-3 flex items-center gap-2">
+      <header className="bg-primary px-4 pb-3 flex items-center gap-2" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}>
         <span className="text-lg">🐑</span>
         <span className="font-heading font-extrabold text-primary-foreground">Ovelhinha</span>
         <span className="ml-auto text-primary-foreground/80 text-sm">{room?.emoji} {room?.name}</span>
