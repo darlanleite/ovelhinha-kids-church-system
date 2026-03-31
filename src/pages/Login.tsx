@@ -4,9 +4,14 @@ import { Monitor, Smartphone } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { toast } from 'sonner';
 import OvelhinhaLogo from '@/components/OvelhinhaLogo';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Login = () => {
+  const isMobile = useIsMobile();
   const [role, setRole] = useState<'reception' | 'tia' | null>(null);
+
+  // Em mobile, vai direto para o login da Salinha
+  const effectiveRole = isMobile ? (role ?? 'tia') : role;
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
   const login = useStore((s) => s.login);
@@ -17,7 +22,7 @@ const Login = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (role === 'reception') {
+    if (effectiveRole === 'reception') {
       if (password === '1234') {
         login('reception');
         toast('Bem-vindo(a)! 🐑');
@@ -25,7 +30,7 @@ const Login = () => {
       } else {
         toast.error('Senha incorreta');
       }
-    } else if (role === 'tia') {
+    } else if (effectiveRole === 'tia') {
       if (code === settings.dailyCode) {
         login('tia', selectedRoom);
         toast('Bem-vinda, Tia! 🐑');
@@ -50,8 +55,8 @@ const Login = () => {
           <p className="mt-2 text-muted-foreground font-body text-sm font-medium">Cada criança, no lugar certo.</p>
         </div>
 
-        {/* Role selection */}
-        {!role && (
+        {/* Role selection — apenas desktop */}
+        {!isMobile && !role && (
           <div className="space-y-4">
             <button
               onClick={() => setRole('reception')}
@@ -81,14 +86,16 @@ const Login = () => {
         )}
 
         {/* Login form */}
-        {role && (
+        {effectiveRole && (
           <form onSubmit={handleSubmit} className="bg-card rounded-card shadow-soft p-8 border border-border animate-fade-in">
-            <button type="button" onClick={() => setRole(null)} className="text-sm text-muted-foreground mb-4 hover:text-foreground transition-colors">← Voltar</button>
+            {!isMobile && (
+              <button type="button" onClick={() => setRole(null)} className="text-sm text-muted-foreground mb-4 hover:text-foreground transition-colors">← Voltar</button>
+            )}
             <h2 className="font-heading font-extrabold text-xl mb-6 text-foreground">
-              {role === 'reception' ? '🖥️ Recepção' : '📱 Salinha'}
+              {effectiveRole === 'reception' ? '🖥️ Recepção' : '📱 Salinha'}
             </h2>
 
-            {role === 'reception' ? (
+            {effectiveRole === 'reception' ? (
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-foreground">Senha</label>
                 <input
