@@ -84,6 +84,7 @@ export interface AppSettings {
   heartbeatIntervalSeconds: number;
   heartbeatWarningThreshold: number;
   heartbeatOfflineThreshold: number;
+  esp32Url: string; // URL base do ESP32 na rede local, ex: http://192.168.1.72
 }
 
 export function braceletOfflineSince(b: Bracelet): number | null {

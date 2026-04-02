@@ -81,4 +81,5 @@ export const mockSettings: AppSettings = {
   heartbeatIntervalSeconds: 30,
   heartbeatWarningThreshold: 1,
   heartbeatOfflineThreshold: 3,
+  esp32Url: 'http://192.168.1.72',
 };

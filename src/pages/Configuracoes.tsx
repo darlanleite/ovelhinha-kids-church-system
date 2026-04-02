@@ -14,12 +14,13 @@ const Configuracoes = () => {
 
   const [churchName, setChurchName] = useState(settings.churchName);
   const [reactivateMinutes, setReactivateMinutes] = useState(settings.reactivateMinutes);
+  const [esp32Url, setEsp32Url] = useState(settings.esp32Url);
   const [newRoomName, setNewRoomName] = useState('');
   const [newRoomEmoji, setNewRoomEmoji] = useState('📚');
   const [newRoomAge, setNewRoomAge] = useState('');
 
   const saveChurch = () => {
-    updateSettings({ churchName });
+    updateSettings({ churchName, esp32Url });
     toast('Configurações salvas! 🐑');
   };
 
@@ -54,6 +55,13 @@ const Configuracoes = () => {
             <label className="block text-sm font-medium text-foreground mb-1">Nome da igreja</label>
             <input value={churchName} onChange={(e) => setChurchName(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">IP do ESP32 (rede local)</label>
+            <input value={esp32Url} onChange={(e) => setEsp32Url(e.target.value)}
+              placeholder="http://192.168.1.72"
+              className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+            <p className="text-xs text-muted-foreground mt-1">URL base sem barra no final. Deixe vazio para desabilitar.</p>
           </div>
           <button onClick={saveChurch} className="bg-primary text-primary-foreground font-heading font-bold text-sm px-6 py-2.5 rounded-lg hover:bg-primary-hover transition-colors">
             Salvar
