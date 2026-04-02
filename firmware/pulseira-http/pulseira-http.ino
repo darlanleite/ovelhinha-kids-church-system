@@ -1,8 +1,13 @@
 #include <WiFi.h>
 #include <WebServer.h>
+#include <ESPmDNS.h>
 
-const char* ssid     = "EON SOLAR 2G";
-const char* password = "eonsolar01";
+const char* ssid     = "D&D";
+const char* password = "27804028";
+
+// Nome mDNS — acessível como http://ovelhinha-01.local
+// Mude o número para cada pulseira: ovelhinha-02, ovelhinha-03...
+#define MDNS_NAME "ovelhinha-01"
 
 #define LED_PIN 8
 
@@ -18,7 +23,7 @@ void addCors() {
 void handleOn() {
   addCors();
   ledOn = true;
-  digitalWrite(LED_PIN, LOW); // LOW acende
+  digitalWrite(LED_PIN, LOW);
   server.send(200, "application/json", "{\"status\":\"on\"}");
   Serial.println("LED ON");
 }
@@ -26,7 +31,7 @@ void handleOn() {
 void handleOff() {
   addCors();
   ledOn = false;
-  digitalWrite(LED_PIN, HIGH); // HIGH apaga
+  digitalWrite(LED_PIN, HIGH);
   server.send(200, "application/json", "{\"status\":\"off\"}");
   Serial.println("LED OFF");
 }
@@ -40,7 +45,7 @@ void setup() {
   Serial.begin(115200);
 
   pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, HIGH); // começa apagado
+  digitalWrite(LED_PIN, HIGH);
 
   Serial.print("Conectando Wi-Fi");
   WiFi.begin(ssid, password);
@@ -49,6 +54,10 @@ void setup() {
     Serial.print(".");
   }
   Serial.println("\nIP: " + WiFi.localIP().toString());
+
+  if (MDNS.begin(MDNS_NAME)) {
+    Serial.println("mDNS: http://" + String(MDNS_NAME) + ".local");
+  }
 
   server.on("/on",  HTTP_GET,     handleOn);
   server.on("/off", HTTP_GET,     handleOff);
@@ -61,4 +70,5 @@ void setup() {
 
 void loop() {
   server.handleClient();
+  MDNS.update();
 }
