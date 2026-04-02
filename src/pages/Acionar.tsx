@@ -3,7 +3,7 @@ import { useStore } from '@/store/useStore';
 import { braceletOfflineSince, braceletIsRisky } from '@/store/types';
 import { toast } from 'sonner';
 import { Search, Camera } from 'lucide-react';
-import { callEsp32 } from '@/lib/esp32';
+import { acionarPulseira, encerrarPulseira } from '@/lib/esp32';
 
 const reasons = [
   { icon: '🚽', label: 'Banheiro' },
@@ -19,7 +19,6 @@ const Acionar = () => {
   const rooms = useStore((s) => s.rooms);
   const calls = useStore((s) => s.calls);
   const bracelets = useStore((s) => s.bracelets);
-  const esp32Url = useStore((s) => s.settings.esp32Url);
   const addCall = useStore((s) => s.addCall);
   const answerCall = useStore((s) => s.answerCall);
   const reactivateCall = useStore((s) => s.reactivateCall);
@@ -70,7 +69,7 @@ const Acionar = () => {
       setCalling(false);
       setActiveCallId(callId);
       toast(`Pulseira #${child.braceletNumber || '??'} acionada! 🐑`);
-      callEsp32(esp32Url, '/on');
+      acionarPulseira(child.braceletNumber || '??', reasons[selectedReason].label).catch(() => {});
     }, 1500);
   };
 
@@ -79,7 +78,7 @@ const Acionar = () => {
       answerCall(activeCallId, 'reception');
       updateChild(child.id, { status: 'present' });
       toast('Pai chegou! ✓ 🐑');
-      callEsp32(esp32Url, '/off');
+      encerrarPulseira(child.braceletNumber || '??').catch(() => {});
       setActiveCallId(null);
       setSelectedChild(null);
       setSelectedReason(null);
