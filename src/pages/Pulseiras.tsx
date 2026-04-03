@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useStore } from '@/store/useStore';
+import { useBracelets } from '@/hooks/useBracelets';
 import { braceletOfflineSince } from '@/store/types';
+import type { Bracelet } from '@/store/types';
 import { toast } from 'sonner';
 import { Plus, Battery, Wifi, WifiOff } from 'lucide-react';
 
@@ -13,9 +14,8 @@ const statusConfig = {
 
 const filters = ['Todas', 'Disponíveis', 'Em uso', 'Bateria baixa'] as const;
 
-const ConnectivityBadge = ({ bracelet }: { bracelet: ReturnType<typeof useStore.getState>['bracelets'][number] }) => {
+const ConnectivityBadge = ({ bracelet }: { bracelet: Bracelet }) => {
   if (bracelet.status !== 'in-use') return null;
-
   const secs = braceletOfflineSince(bracelet);
   const sinceLabel = secs !== null ? `${secs}s atrás` : 'nunca';
 
@@ -23,31 +23,26 @@ const ConnectivityBadge = ({ bracelet }: { bracelet: ReturnType<typeof useStore.
     return (
       <div className="mt-2 flex items-center gap-1.5">
         <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-urgent/10 text-urgent animate-pulse">
-          <span className="w-1.5 h-1.5 rounded-full bg-urgent animate-ping" />
-          sem sinal
+          <span className="w-1.5 h-1.5 rounded-full bg-urgent animate-ping" />sem sinal
         </span>
         <span className="text-xs text-muted-foreground">{sinceLabel}</span>
       </div>
     );
   }
-
   if (bracelet.connectivityStatus === 'warning') {
     return (
       <div className="mt-2 flex items-center gap-1.5">
         <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-secondary/20 text-secondary-foreground">
-          <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
-          atenção
+          <span className="w-1.5 h-1.5 rounded-full bg-secondary" />atenção
         </span>
         <span className="text-xs text-muted-foreground">{sinceLabel}</span>
       </div>
     );
   }
-
   return (
     <div className="mt-2 flex items-center gap-1.5">
       <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-success/10 text-success">
-        <span className="w-1.5 h-1.5 rounded-full bg-success" />
-        online
+        <span className="w-1.5 h-1.5 rounded-full bg-success" />online
       </span>
       <span className="text-xs text-muted-foreground">{sinceLabel}</span>
     </div>
@@ -55,8 +50,7 @@ const ConnectivityBadge = ({ bracelet }: { bracelet: ReturnType<typeof useStore.
 };
 
 const Pulseiras = () => {
-  const bracelets = useStore((s) => s.bracelets);
-  const addBracelet = useStore((s) => s.addBracelet);
+  const { bracelets, addBracelet } = useBracelets();
   const [filter, setFilter] = useState<typeof filters[number]>('Todas');
 
   const filtered = bracelets.filter((b) => {
@@ -66,21 +60,14 @@ const Pulseiras = () => {
     return true;
   });
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     const nextNum = (bracelets.length + 1).toString().padStart(2, '0');
-    addBracelet({
-      id: 'b' + Date.now(),
-      number: nextNum,
-      status: 'available',
-      battery: 100,
-      guardianName: null,
-      childId: null,
-      espId: null,
-      lastHeartbeat: null,
-      connectivityStatus: 'online',
-      lastGatewayId: null,
-    });
-    toast(`Pulseira #${nextNum} registrada! 🐑`);
+    try {
+      await addBracelet({ number: nextNum, status: 'available', battery: 100, guardianName: null, childId: null, espId: null, lastHeartbeat: null, connectivityStatus: 'online', lastGatewayId: null });
+      toast(`Pulseira #${nextNum} registrada! 🐑`);
+    } catch {
+      toast.error('Erro ao registrar pulseira');
+    }
   };
 
   return (
@@ -92,22 +79,15 @@ const Pulseiras = () => {
         </button>
       </div>
 
-      {/* Filters */}
       <div className="flex gap-2 mb-6 flex-wrap">
         {filters.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              filter === f ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground hover:bg-muted'
-            }`}
-          >
+          <button key={f} onClick={() => setFilter(f)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filter === f ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground hover:bg-muted'}`}>
             {f}
           </button>
         ))}
       </div>
 
-      {/* Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {filtered.map((b) => {
           const cfg = statusConfig[b.status];
@@ -121,7 +101,6 @@ const Pulseiras = () => {
                 <div className={`w-2.5 h-2.5 rounded-full ${cfg.dot}`} />
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cfg.bg} text-foreground`}>{cfg.label}</span>
               </div>
-              {/* Battery */}
               <div className="flex items-center gap-2 mb-2">
                 <Battery className={`w-4 h-4 ${b.battery < 15 ? 'text-urgent' : b.battery < 20 ? 'text-secondary' : 'text-muted-foreground'}`} />
                 <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
@@ -129,12 +108,8 @@ const Pulseiras = () => {
                 </div>
                 <span className="text-xs text-muted-foreground font-mono">{b.battery}%</span>
               </div>
-              {b.battery < 15 && (
-                <p className="text-xs text-urgent font-medium mt-1">⚠ Bateria crítica</p>
-              )}
-              {b.guardianName && (
-                <p className="text-xs text-muted-foreground mt-2 truncate">{b.guardianName}</p>
-              )}
+              {b.battery < 15 && <p className="text-xs text-urgent font-medium mt-1">⚠ Bateria crítica</p>}
+              {b.guardianName && <p className="text-xs text-muted-foreground mt-2 truncate">{b.guardianName}</p>}
               <ConnectivityBadge bracelet={b} />
             </div>
           );

@@ -1,47 +1,41 @@
 import { useState } from 'react';
-import { useStore } from '@/store/useStore';
+import { useChurch } from '@/hooks/useChurch';
+import { useBracelets } from '@/hooks/useBracelets';
 import { toast } from 'sonner';
 import { Plus, Trash2, RefreshCw, Cpu } from 'lucide-react';
 
 const Configuracoes = () => {
-  const settings = useStore((s) => s.settings);
-  const rooms = useStore((s) => s.rooms);
-  const bracelets = useStore((s) => s.bracelets);
-  const updateSettings = useStore((s) => s.updateSettings);
-  const addRoom = useStore((s) => s.addRoom);
-  const removeRoom = useStore((s) => s.removeRoom);
-  const updateBracelet = useStore((s) => s.updateBracelet);
-  const novoCulto = useStore((s) => s.novoCulto);
+  const { settings, rooms, updateSettings, generateDailyCode, addRoom, removeRoom, novoCulto } = useChurch();
+  const { bracelets, updateBracelet } = useBracelets();
   const [confirmando, setConfirmando] = useState(false);
-
   const [churchName, setChurchName] = useState(settings.churchName);
   const [reactivateMinutes, setReactivateMinutes] = useState(settings.reactivateMinutes);
   const [newRoomName, setNewRoomName] = useState('');
   const [newRoomEmoji, setNewRoomEmoji] = useState('📚');
   const [newRoomAge, setNewRoomAge] = useState('');
 
-  const saveChurch = () => {
-    updateSettings({ churchName });
+  const saveChurch = async () => {
+    await updateSettings({ churchName, reactivateMinutes });
     toast('Configurações salvas! 🐑');
   };
 
-  const generateCode = () => {
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
-    updateSettings({ dailyCode: code });
+  const handleGenerateCode = async () => {
+    const code = await generateDailyCode();
     toast(`Novo código do dia: ${code} 🐑`);
   };
 
-  const handleAddRoom = () => {
+  const handleAddRoom = async () => {
     if (!newRoomName.trim()) return;
-    addRoom({
-      id: 'r' + Date.now(),
-      name: newRoomName,
-      emoji: newRoomEmoji,
-      ageRange: newRoomAge,
-    });
+    await addRoom({ name: newRoomName, emoji: newRoomEmoji, ageRange: newRoomAge });
     setNewRoomName('');
     setNewRoomAge('');
     toast('Sala adicionada! 🐑');
+  };
+
+  const handleNovoCulto = async () => {
+    await novoCulto();
+    setConfirmando(false);
+    toast('Novo culto iniciado! Lista limpa. 🐑');
   };
 
   return (
@@ -59,12 +53,9 @@ const Configuracoes = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1">URL do Backend (via VITE_BACKEND_URL)</label>
-            <input
-              value={import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'}
-              disabled
-              className="w-full px-4 py-3 rounded-lg border border-border bg-muted text-muted-foreground font-mono text-sm cursor-not-allowed opacity-60"
-            />
-            <p className="text-xs text-muted-foreground mt-1">Configurado via variável de ambiente no Vercel. Não editável aqui.</p>
+            <input value={import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'} disabled
+              className="w-full px-4 py-3 rounded-lg border border-border bg-muted text-muted-foreground font-mono text-sm cursor-not-allowed opacity-60" />
+            <p className="text-xs text-muted-foreground mt-1">Configurado via variável de ambiente. Não editável aqui.</p>
           </div>
           <button onClick={saveChurch} className="bg-primary text-primary-foreground font-heading font-bold text-sm px-6 py-2.5 rounded-lg hover:bg-primary-hover transition-colors">
             Salvar
@@ -83,7 +74,7 @@ const Configuracoes = () => {
                 <p className="font-heading font-bold text-foreground text-sm">{room.name}</p>
                 <p className="text-xs text-muted-foreground">{room.ageRange}</p>
               </div>
-              <button onClick={() => { removeRoom(room.id); toast('Sala removida'); }} className="text-muted-foreground hover:text-urgent transition-colors">
+              <button onClick={async () => { await removeRoom(room.id); toast('Sala removida'); }} className="text-muted-foreground hover:text-urgent transition-colors">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
@@ -104,7 +95,7 @@ const Configuracoes = () => {
         <h2 className="font-heading font-extrabold text-lg text-foreground mb-4">🔑 Código do Dia</h2>
         <div className="flex items-center gap-4">
           <span className="font-mono text-4xl font-bold text-primary tracking-[0.2em]">{settings.dailyCode}</span>
-          <button onClick={generateCode} className="bg-primary text-primary-foreground font-heading font-bold text-sm px-4 py-2.5 rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2">
+          <button onClick={handleGenerateCode} className="bg-primary text-primary-foreground font-heading font-bold text-sm px-4 py-2.5 rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2">
             <RefreshCw className="w-4 h-4" /> Gerar novo
           </button>
         </div>
@@ -118,18 +109,16 @@ const Configuracoes = () => {
           {bracelets.map((b) => (
             <div key={b.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
               <span className="font-mono font-bold text-foreground text-sm w-8">#{b.number}</span>
-              <input
-                value={b.espId || ''}
-                onChange={(e) => updateBracelet(b.id, { espId: e.target.value || null })}
+              <input value={b.espId || ''} onChange={(e) => updateBracelet(b.id, { espId: e.target.value || null })}
                 placeholder="Ex: A4:B2:C1:D3"
-                className="flex-1 px-3 py-2 rounded-lg border border-border bg-card text-foreground font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-              />
+                className="flex-1 px-3 py-2 rounded-lg border border-border bg-card text-foreground font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
               <Cpu className="w-4 h-4 text-muted-foreground" />
             </div>
           ))}
         </div>
       </div>
 
+      {/* Novo Culto */}
       <div className="bg-card rounded-card shadow-soft border border-border p-6">
         <h2 className="font-heading font-extrabold text-lg text-foreground mb-4">🗂️ Novo Culto</h2>
         <p className="text-sm text-muted-foreground mb-4">Limpa todas as crianças e chamadas do culto atual. As pulseiras voltam para "disponível".</p>
@@ -140,30 +129,23 @@ const Configuracoes = () => {
         ) : (
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-foreground">Tem certeza? Isso apaga todos os dados do culto atual.</span>
-            <button onClick={() => { novoCulto(); setConfirmando(false); toast('Novo culto iniciado! Lista limpa. 🐑'); }} className="bg-urgent text-urgent-foreground font-heading font-bold text-sm px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
-              Confirmar
-            </button>
-            <button onClick={() => setConfirmando(false)} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Cancelar
-            </button>
+            <button onClick={handleNovoCulto} className="bg-urgent text-urgent-foreground font-heading font-bold text-sm px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">Confirmar</button>
+            <button onClick={() => setConfirmando(false)} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Cancelar</button>
           </div>
         )}
       </div>
 
+      {/* Sistema */}
       <div className="bg-card rounded-card shadow-soft border border-border p-6">
         <h2 className="font-heading font-extrabold text-lg text-foreground mb-4">⚙️ Sistema</h2>
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
             Tempo para reacionamento: <span className="font-heading font-bold text-primary">{reactivateMinutes} min</span>
           </label>
-          <input
-            type="range" min={1} max={15} value={reactivateMinutes}
-            onChange={(e) => { const v = Number(e.target.value); setReactivateMinutes(v); updateSettings({ reactivateMinutes: v }); }}
-            className="w-full accent-primary"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>1 min</span><span>15 min</span>
-          </div>
+          <input type="range" min={1} max={15} value={reactivateMinutes}
+            onChange={(e) => setReactivateMinutes(Number(e.target.value))}
+            className="w-full accent-primary" />
+          <div className="flex justify-between text-xs text-muted-foreground"><span>1 min</span><span>15 min</span></div>
         </div>
       </div>
     </div>

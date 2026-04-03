@@ -1,18 +1,20 @@
 import { useEffect } from 'react';
-import { initSync, onSyncEvent } from '@/lib/syncClient';
+import { initSync, onSyncEvent, onInitEvent } from '@/lib/syncClient';
 import { useStore } from '@/store/useStore';
 
 // Inicializa conexão uma vez
 let initialized = false;
 
 export function SyncBridge() {
-  const addCall      = useStore((s) => s.addCall);
-  const answerCall   = useStore((s) => s.answerCall);
+  const addCall        = useStore((s) => s.addCall);
+  const answerCall     = useStore((s) => s.answerCall);
   const reactivateCall = useStore((s) => s.reactivateCall);
-  const addChild     = useStore((s) => s.addChild);
-  const updateChild  = useStore((s) => s.updateChild);
+  const addChild       = useStore((s) => s.addChild);
+  const updateChild    = useStore((s) => s.updateChild);
   const updateBracelet = useStore((s) => s.updateBracelet);
-  const bracelets    = useStore((s) => s.bracelets);
+  const bracelets      = useStore((s) => s.bracelets);
+  const novoCulto      = useStore((s) => s.novoCulto);
+  const hydrateFromServer = useStore((s) => s.hydrateFromServer);
 
   useEffect(() => {
     if (!initialized) {
@@ -20,7 +22,16 @@ export function SyncBridge() {
       initialized = true;
     }
 
-    const unsub = onSyncEvent((event) => {
+    const unsubInit = onInitEvent((event) => {
+      console.log('[SYNC] Estado inicial recebido do servidor');
+      hydrateFromServer({
+        children: event.children,
+        calls: event.calls,
+        bracelets: event.bracelets,
+      });
+    });
+
+    const unsubSync = onSyncEvent((event) => {
       console.log('[SYNC] Evento recebido:', event.type);
 
       switch (event.type) {
@@ -48,10 +59,13 @@ export function SyncBridge() {
           }
           break;
         }
+        case 'novoCulto':
+          novoCulto();
+          break;
       }
     });
 
-    return unsub;
+    return () => { unsubInit(); unsubSync(); };
   }, []);
 
   return null;

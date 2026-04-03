@@ -52,8 +52,4 @@ export const mockSettings: AppSettings = {
   churchName: 'Igreja Graça e Vida',
   reactivateMinutes: 5,
   dailyCode: '4821',
-  heartbeatIntervalSeconds: 30,
-  heartbeatWarningThreshold: 1,
-  heartbeatOfflineThreshold: 3,
-  esp32Url: 'http://ovelhinha-01.local',
 };

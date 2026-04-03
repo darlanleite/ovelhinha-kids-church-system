@@ -12,13 +12,12 @@ import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
 import DashboardLayout from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
-import { SyncBridge } from "./components/SyncBridge";
-import { useStore } from "./store/useStore";
+import { useAppStore } from "./store/useAppStore";
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode; role?: 'reception' | 'tia' }) => {
-  const userRole = useStore((s) => s.userRole);
+  const userRole = useAppStore((s) => s.userRole);
   if (!userRole) return <Navigate to="/" replace />;
   if (role && userRole !== role) return <Navigate to="/" replace />;
   return <>{children}</>;
@@ -33,7 +32,6 @@ const ReceptionPage = ({ children }: { children: React.ReactNode }) => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <SyncBridge />
       <Sonner position="top-right" toastOptions={{ className: 'font-body' }} />
       <BrowserRouter>
         <Routes>

@@ -41,16 +41,6 @@ export interface Call {
   answeredBy: 'reception' | 'tia' | null;
   createdAt: string;
   answeredAt: string | null;
-  braceletConnectivityAtCall: 'online' | 'warning' | 'unreachable';
-  bleDeliveryStatus: 'pending' | 'delivered' | 'failed';
-  bleAttempts: number;
-  bleLastAttemptAt: string | null;
-  fallbackTriggered: boolean;
-  fallbackAttempts: Array<{
-    channel: 'whatsapp' | 'microphone' | 'volunteer';
-    attemptedAt: string;
-    attemptedBy: string;
-  }>;
 }
 
 export interface Gateway {
@@ -81,10 +71,6 @@ export interface AppSettings {
   churchName: string;
   reactivateMinutes: number;
   dailyCode: string;
-  heartbeatIntervalSeconds: number;
-  heartbeatWarningThreshold: number;
-  heartbeatOfflineThreshold: number;
-  esp32Url: string; // URL base do ESP32 na rede local, ex: http://192.168.1.72
 }
 
 export function braceletOfflineSince(b: Bracelet): number | null {

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Monitor } from 'lucide-react';
-import { useStore } from '@/store/useStore';
+import { useAppStore } from '@/store/useAppStore';
+import { useChurch } from '@/hooks/useChurch';
 import { toast } from 'sonner';
 import OvelhinhaLogo from '@/components/OvelhinhaLogo';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -9,16 +10,17 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const Login = () => {
   const isMobile = useIsMobile();
   const [role, setRole] = useState<'reception' | 'tia' | null>(null);
-
-  // Em mobile, vai direto para o login da Salinha
   const effectiveRole = isMobile ? (role ?? 'tia') : role;
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
-  const login = useStore((s) => s.login);
-  const settings = useStore((s) => s.settings);
-  const rooms = useStore((s) => s.rooms);
-  const [selectedRoom, setSelectedRoom] = useState(rooms[0]?.id || '');
+  const login = useAppStore((s) => s.login);
+  const { settings, rooms } = useChurch();
+  const [selectedRoom, setSelectedRoom] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (rooms.length > 0 && !selectedRoom) setSelectedRoom(rooms[0].id);
+  }, [rooms, selectedRoom]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +34,7 @@ const Login = () => {
       }
     } else if (effectiveRole === 'tia') {
       if (code === settings.dailyCode) {
-        login('tia', selectedRoom);
+        login('tia', selectedRoom || rooms[0]?.id);
         toast('Bem-vinda, Tia! 🐑');
         navigate('/tia');
       } else {
@@ -43,11 +45,9 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background-wool relative overflow-hidden">
-      {/* Subtle dot pattern */}
       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #1A1F36 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
       <div className="relative z-10 w-full max-w-md px-6 animate-fade-in">
-        {/* Logo */}
         <div className="text-center mb-10">
           <div className="flex justify-center mb-3">
             <OvelhinhaLogo size={96} />
@@ -55,7 +55,6 @@ const Login = () => {
           <p className="mt-2 text-muted-foreground font-body text-sm font-medium">Cada criança, no lugar certo.</p>
         </div>
 
-        {/* Role selection — apenas desktop, somente Recepção */}
         {!isMobile && !role && (
           <div className="space-y-4">
             <button
@@ -73,7 +72,6 @@ const Login = () => {
           </div>
         )}
 
-        {/* Login form */}
         {effectiveRole && (
           <form onSubmit={handleSubmit} className="bg-card rounded-card shadow-soft p-8 border border-border animate-fade-in">
             {!isMobile && (

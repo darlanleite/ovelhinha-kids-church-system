@@ -1,39 +1,39 @@
-import { useStore } from '@/store/useStore';
-import { Users, Watch, AlertTriangle, BatteryLow, LogOut } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useChildren } from '@/hooks/useChildren';
+import { useCalls } from '@/hooks/useCalls';
+import { useBracelets } from '@/hooks/useBracelets';
+import { useChurch } from '@/hooks/useChurch';
+import { Users, Watch, AlertTriangle, BatteryLow, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
-import { emitSync } from '@/lib/syncClient';
+import { encerrarPulseira } from '@/lib/esp32';
 
 const Dashboard = () => {
-  const children = useStore((s) => s.children);
-  const bracelets = useStore((s) => s.bracelets);
-  const calls = useStore((s) => s.calls);
-  const rooms = useStore((s) => s.rooms);
-  const answerCall = useStore((s) => s.answerCall);
-  const updateChild = useStore((s) => s.updateChild);
-  const updateBracelet = useStore((s) => s.updateBracelet);
+  const { children, updateChild } = useChildren();
+  const { openCalls, answerCall } = useCalls();
+  const { bracelets, stats, updateBracelet } = useBracelets();
+  const { rooms } = useChurch();
 
-  const checkout = (childId: string) => {
+  const checkout = async (childId: string) => {
     const child = children.find((c) => c.id === childId);
     if (!child) return;
-    updateChild(childId, { status: 'left', braceletNumber: null });
-    if (child.braceletNumber) {
-      const bracelet = bracelets.find((b) => b.number === child.braceletNumber);
-      if (bracelet) updateBracelet(bracelet.id, { status: 'available', guardianName: null, childId: null });
+    try {
+      await updateChild(childId, { status: 'left', braceletNumber: null });
+      if (child.braceletNumber) {
+        const bracelet = bracelets.find((b) => b.number === child.braceletNumber);
+        if (bracelet) await updateBracelet(bracelet.id, { status: 'available', guardianName: null, childId: null });
+      }
+      toast(`Saída de ${child.name} registrada 🐑`);
+    } catch {
+      toast.error('Erro ao registrar saída');
     }
-    emitSync({ type: 'checkout', payload: { childId, braceletNumber: child.braceletNumber } });
-    toast(`Saída de ${child.name} registrada 🐑`);
   };
 
   const presentChildren = children.filter((c) => c.status !== 'left');
-  const activeBracelets = bracelets.filter((b) => b.status === 'in-use');
-  const openCalls = calls.filter((c) => c.status === 'open');
   const lowBattery = bracelets.filter((b) => b.battery < 20);
 
-  const stats = [
+  const statsCards = [
     { label: 'Crianças presentes', value: presentChildren.length, icon: Users, color: 'text-primary', bg: 'bg-primary/10' },
-    { label: 'Pulseiras ativas', value: activeBracelets.length, icon: Watch, color: 'text-secondary', bg: 'bg-secondary/20' },
+    { label: 'Pulseiras ativas', value: stats.inUse, icon: Watch, color: 'text-secondary', bg: 'bg-secondary/20' },
     { label: 'Chamadas abertas', value: openCalls.length, icon: AlertTriangle, color: 'text-urgent', bg: 'bg-urgent/10', pulse: openCalls.length > 0 },
     { label: 'Bateria baixa', value: lowBattery.length, icon: BatteryLow, color: 'text-yellow-500', bg: 'bg-yellow-50' },
   ];
@@ -42,9 +42,8 @@ const Dashboard = () => {
     <div className="space-y-6">
       <h1 className="font-heading font-black text-2xl text-foreground">Dashboard</h1>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((s) => (
+        {statsCards.map((s) => (
           <div key={s.label} className="bg-card rounded-card shadow-soft p-5 border border-border">
             <div className="flex items-center gap-3">
               <div className={`w-12 h-12 rounded-xl ${s.bg} flex items-center justify-center ${s.pulse ? 'animate-pulse-urgent' : ''}`}>
@@ -59,7 +58,6 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Open Calls */}
       {openCalls.length > 0 && (
         <div className="space-y-3">
           <h2 className="font-heading font-extrabold text-lg text-foreground">🔔 Chamadas Abertas</h2>
@@ -67,61 +65,56 @@ const Dashboard = () => {
             {openCalls.map((call) => {
               const child = children.find((c) => c.id === call.childId);
               return (
-                <OpenCallCard key={call.id} call={call} childName={child?.name || ''} onAnswer={() => { answerCall(call.id, 'reception'); emitSync({ type: 'answerCall', payload: { callId: call.id, answeredBy: 'reception' } }); }} />
+                <OpenCallCard
+                  key={call.id}
+                  call={call}
+                  childName={child?.name || ''}
+                  onAnswer={async () => {
+                    await answerCall(call.id, 'reception');
+                    const bracelet = child?.braceletNumber || call.braceletNumber;
+                    if (bracelet) encerrarPulseira(bracelet).catch(() => {});
+                  }}
+                />
               );
             })}
           </div>
         </div>
       )}
 
-      {/* Present Children */}
       <div className="space-y-3">
         <h2 className="font-heading font-extrabold text-lg text-foreground">Crianças presentes</h2>
         <div className="bg-card rounded-card shadow-soft border border-border overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left px-5 py-3 font-heading font-bold text-muted-foreground text-xs uppercase tracking-wider">Nome</th>
-                <th className="text-left px-5 py-3 font-heading font-bold text-muted-foreground text-xs uppercase tracking-wider">Sala</th>
-                <th className="text-left px-5 py-3 font-heading font-bold text-muted-foreground text-xs uppercase tracking-wider">Pulseira</th>
-                <th className="text-left px-5 py-3 font-heading font-bold text-muted-foreground text-xs uppercase tracking-wider">Status</th>
-                <th className="px-5 py-3" />
+                {['Nome', 'Sala', 'Pulseira', 'Status', ''].map((h) => (
+                  <th key={h} className="text-left px-4 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {children.filter((c) => c.status !== 'left').map((child) => {
+              {presentChildren.map((child) => {
                 const room = rooms.find((r) => r.id === child.roomId);
-                const statusStyles = {
-                  present: 'bg-success/10 text-success',
-                  called: 'bg-urgent/10 text-urgent',
-                  left: 'bg-muted text-muted-foreground',
-                };
-                const statusLabel = { present: 'Presente', called: 'Chamado', left: 'Saiu' };
                 return (
-                  <tr key={child.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="px-5 py-3 font-medium text-foreground">{child.name}</td>
-                    <td className="px-5 py-3 text-muted-foreground">{room?.emoji} {room?.name}</td>
-                    <td className="px-5 py-3">
-                      {child.braceletNumber ? (
-                        <span className="bg-secondary/20 text-secondary-foreground font-mono text-xs font-bold px-2 py-1 rounded-md">#{child.braceletNumber}</span>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
+                  <tr key={child.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+                    <td className="px-4 py-3 font-medium text-foreground">{child.name}</td>
+                    <td className="px-4 py-3 text-muted-foreground text-sm">{room?.emoji} {room?.name}</td>
+                    <td className="px-4 py-3 font-mono text-foreground">
+                      {child.braceletNumber ? `#${child.braceletNumber}` : <span className="text-muted-foreground">—</span>}
                     </td>
-                    <td className="px-5 py-3">
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${statusStyles[child.status]}`}>
-                        {statusLabel[child.status]}
+                    <td className="px-4 py-3">
+                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                        child.status === 'present' ? 'bg-success/10 text-success' :
+                        child.status === 'called'  ? 'bg-urgent/10 text-urgent' :
+                                                     'bg-muted text-muted-foreground'
+                      }`}>
+                        {child.status === 'present' ? 'Presente' : child.status === 'called' ? 'Chamado' : 'Saiu'}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-right">
-                      {child.status !== 'called' && (
-                        <button
-                          onClick={() => checkout(child.id)}
-                          className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-urgent transition-colors"
-                        >
-                          <LogOut className="w-3.5 h-3.5" /> Saída
-                        </button>
-                      )}
+                    <td className="px-4 py-3">
+                      <button onClick={() => checkout(child.id)} className="text-muted-foreground hover:text-urgent transition-colors" title="Dar saída">
+                        <LogOut className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 );
@@ -136,34 +129,29 @@ const Dashboard = () => {
 
 const OpenCallCard = ({ call, childName, onAnswer }: { call: any; childName: string; onAnswer: () => void }) => {
   const [elapsed, setElapsed] = useState(0);
-
   useEffect(() => {
     const start = new Date(call.createdAt).getTime();
     const tick = () => setElapsed(Math.floor((Date.now() - start) / 1000));
     tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
   }, [call.createdAt]);
 
   const mins = Math.floor(elapsed / 60);
   const secs = elapsed % 60;
-  const isOverdue = elapsed > 300;
+  const overdue = elapsed > 300;
 
   return (
-    <div className={`bg-card rounded-card border p-5 flex items-center gap-4 ${isOverdue ? 'border-urgent animate-pulse-urgent' : 'border-urgent/30'}`} style={{ backgroundColor: isOverdue ? 'hsl(0 100% 98%)' : undefined }}>
-      <div className="w-10 h-10 rounded-full bg-urgent/10 flex items-center justify-center text-xl animate-pulse-urgent">
-        {call.reasonIcon}
+    <div className={`bg-card rounded-card shadow-soft border p-5 flex items-center gap-4 ${overdue ? 'border-urgent/40' : 'border-border'}`}>
+      <div className={`text-3xl ${overdue ? 'animate-pulse-urgent' : ''}`}>{call.reasonIcon}</div>
+      <div className="flex-1">
+        <p className="font-heading font-bold text-foreground">{childName}</p>
+        <p className="text-sm text-muted-foreground">{call.reason} · #{call.braceletNumber}</p>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-heading font-extrabold text-foreground">{childName}</p>
-        <p className="text-sm text-muted-foreground">{call.reason} · Pulseira <span className="font-mono">#{call.braceletNumber}</span></p>
+      <div className={`font-mono text-lg font-bold ${overdue ? 'text-urgent' : 'text-foreground'}`}>
+        {mins}:{secs.toString().padStart(2, '0')}
       </div>
-      <div className="text-right">
-        <p className={`font-mono font-bold text-lg ${isOverdue ? 'text-urgent' : 'text-foreground'}`}>
-          {mins}:{secs.toString().padStart(2, '0')}
-        </p>
-      </div>
-      <button onClick={onAnswer} className="bg-success text-success-foreground font-heading font-bold text-sm px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+      <button onClick={onAnswer} className="bg-success text-success-foreground font-heading font-bold text-sm px-4 py-2.5 rounded-lg hover:opacity-90 transition-opacity">
         ✓ Chegou
       </button>
     </div>

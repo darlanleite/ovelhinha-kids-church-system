@@ -1,4 +1,6 @@
-import { useStore } from '@/store/useStore';
+import { useReports } from '@/hooks/useReports';
+import { useCalls } from '@/hooks/useCalls';
+import { useChildren } from '@/hooks/useChildren';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Download, Users, Bell, Clock } from 'lucide-react';
 import { toast } from 'sonner';
@@ -6,9 +8,9 @@ import { toast } from 'sonner';
 const PIE_COLORS = ['#5B8CFF', '#FFB347', '#FF6B6B', '#3ECFAA', '#6B7280', '#A78BFA'];
 
 const Relatorios = () => {
-  const history = useStore((s) => s.history);
-  const calls = useStore((s) => s.calls);
-  const children = useStore((s) => s.children);
+  const { history } = useReports();
+  const { calls } = useCalls();
+  const { children } = useChildren();
 
   const barData = history.map((h) => ({ name: h.serviceName.replace('Culto ', ''), criancas: h.childrenCount, chamadas: h.callsCount }));
 
@@ -18,12 +20,11 @@ const Relatorios = () => {
 
   const totalChildren = history.reduce((s, h) => s + h.childrenCount, 0);
   const totalCalls = calls.length;
-  const avgTime = '3m 42s'; // simulated
 
   const stats = [
     { label: 'Total de crianças', value: totalChildren, icon: Users, color: 'text-primary' },
     { label: 'Total de chamadas', value: totalCalls, icon: Bell, color: 'text-urgent' },
-    { label: 'Tempo médio resposta', value: avgTime, icon: Clock, color: 'text-success' },
+    { label: 'Tempo médio resposta', value: '3m 42s', icon: Clock, color: 'text-success' },
   ];
 
   const handleExport = () => {
@@ -47,7 +48,6 @@ const Relatorios = () => {
         </button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map((s) => (
           <div key={s.label} className="bg-card rounded-card shadow-soft border border-border p-5 flex items-center gap-4">
@@ -60,7 +60,6 @@ const Relatorios = () => {
         ))}
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-card rounded-card shadow-soft border border-border p-6">
           <h3 className="font-heading font-bold text-foreground mb-4">Crianças por culto</h3>
@@ -88,7 +87,6 @@ const Relatorios = () => {
         </div>
       </div>
 
-      {/* History table */}
       <div className="bg-card rounded-card shadow-soft border border-border overflow-hidden">
         <h3 className="font-heading font-bold text-foreground p-5 pb-0">Histórico de chamadas</h3>
         <div className="overflow-x-auto">

@@ -1,9 +1,10 @@
 import { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, UserPlus, Watch, BarChart3, Settings, LogOut, Bell } from 'lucide-react';
-import { useStore } from '@/store/useStore';
+import { useAppStore } from '@/store/useAppStore';
+import { useChurch } from '@/hooks/useChurch';
+import { useCalls } from '@/hooks/useCalls';
 import OvelhinhaLogo from '@/components/OvelhinhaLogo';
-import { useHeartbeatSimulator } from '@/hooks/useHeartbeatSimulator';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: Home },
@@ -17,12 +18,9 @@ const navItems = [
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const logout = useStore((s) => s.logout);
-  const settings = useStore((s) => s.settings);
-  const calls = useStore((s) => s.calls);
-  const openCalls = calls.filter((c) => c.status === 'open').length;
-
-  useHeartbeatSimulator();
+  const logout = useAppStore((s) => s.logout);
+  const { settings } = useChurch();
+  const { openCalls } = useCalls();
 
   const handleLogout = () => {
     logout();
@@ -55,9 +53,9 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
-                {item.path === '/acionar' && openCalls > 0 && (
+                {item.path === '/acionar' && openCalls.length > 0 && (
                   <span className="ml-auto bg-urgent text-urgent-foreground text-xs font-bold px-2 py-0.5 rounded-full animate-pulse-urgent">
-                    {openCalls}
+                    {openCalls.length}
                   </span>
                 )}
               </Link>

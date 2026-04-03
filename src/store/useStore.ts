@@ -24,11 +24,9 @@ interface AppState {
   updateChild: (id: string, updates: Partial<Child>) => void;
 
   // Actions — calls
-  addCall: (call: Omit<Call, 'braceletConnectivityAtCall' | 'bleDeliveryStatus' | 'bleAttempts' | 'bleLastAttemptAt' | 'fallbackTriggered' | 'fallbackAttempts'>) => void;
+  addCall: (call: Omit<Call, 'id'>) => void;
   answerCall: (callId: string, answeredBy: 'reception' | 'tia') => void;
   reactivateCall: (callId: string) => void;
-  updateBleDelivery: (callId: string, status: Call['bleDeliveryStatus'], attempts: number) => void;
-  triggerFallback: (callId: string, attempt: Call['fallbackAttempts'][number]) => void;
 
   // Actions — bracelets
   updateBracelet: (id: string, updates: Partial<Bracelet>) => void;
@@ -49,6 +47,11 @@ interface AppState {
 
   // Actions — culto
   novoCulto: () => void;
+  hydrateFromServer: (serverState: {
+    children: Child[];
+    calls: Call[];
+    bracelets: Pick<Bracelet, 'id' | 'number' | 'status' | 'guardianName' | 'childId'>[];
+  }) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -72,19 +75,9 @@ export const useStore = create<AppState>()(
         children: s.children.map((c) => c.id === id ? { ...c, ...updates } : c),
       })),
 
-      addCall: (callData) => set((s) => {
-        const bracelet = s.bracelets.find((b) => b.number === callData.braceletNumber);
-        const call: Call = {
-          ...callData,
-          braceletConnectivityAtCall: bracelet?.connectivityStatus ?? 'online',
-          bleDeliveryStatus: 'pending',
-          bleAttempts: 0,
-          bleLastAttemptAt: null,
-          fallbackTriggered: false,
-          fallbackAttempts: [],
-        };
-        return { calls: [...s.calls, call] };
-      }),
+      addCall: (callData) => set((s) => ({
+        calls: [...s.calls, callData as Call],
+      })),
 
       answerCall: (callId, answeredBy) => set((s) => {
         const call = s.calls.find((c) => c.id === callId);
@@ -113,22 +106,6 @@ export const useStore = create<AppState>()(
         calls: s.calls.map((c) =>
           c.id === callId
             ? { ...c, status: 'reactivated' as const, createdAt: new Date().toISOString(), answeredAt: null, answeredBy: null }
-            : c
-        ),
-      })),
-
-      updateBleDelivery: (callId, status, attempts) => set((s) => ({
-        calls: s.calls.map((c) =>
-          c.id === callId
-            ? { ...c, bleDeliveryStatus: status, bleAttempts: attempts, bleLastAttemptAt: new Date().toISOString() }
-            : c
-        ),
-      })),
-
-      triggerFallback: (callId, attempt) => set((s) => ({
-        calls: s.calls.map((c) =>
-          c.id === callId
-            ? { ...c, fallbackTriggered: true, fallbackAttempts: [...c.fallbackAttempts, attempt] }
             : c
         ),
       })),
@@ -167,6 +144,17 @@ export const useStore = create<AppState>()(
         gateways: s.gateways.map((g) => g.id === id ? { ...g, ...updates } : g),
       })),
       removeGateway: (id) => set((s) => ({ gateways: s.gateways.filter((g) => g.id !== id) })),
+
+      hydrateFromServer: (serverState) => set((s) => ({
+        children: serverState.children,
+        calls: serverState.calls,
+        bracelets: s.bracelets.map((b) => {
+          const sb = serverState.bracelets.find((x) => x.number === b.number);
+          return sb
+            ? { ...b, status: sb.status, guardianName: sb.guardianName, childId: sb.childId }
+            : b;
+        }),
+      })),
 
       novoCulto: () => set((s) => ({
         children: [],

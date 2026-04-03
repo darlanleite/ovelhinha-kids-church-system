@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useStore } from '@/store/useStore';
+import { useChildren } from '@/hooks/useChildren';
+import { useCalls } from '@/hooks/useCalls';
+import { useBracelets } from '@/hooks/useBracelets';
+import { useChurch } from '@/hooks/useChurch';
 import { braceletOfflineSince, braceletIsRisky } from '@/store/types';
 import { toast } from 'sonner';
 import { Search, Camera } from 'lucide-react';
 import { acionarPulseira, encerrarPulseira } from '@/lib/esp32';
-import { emitSync } from '@/lib/syncClient';
 
 const reasons = [
   { icon: '🚽', label: 'Banheiro' },
@@ -16,15 +18,10 @@ const reasons = [
 ];
 
 const Acionar = () => {
-  const children = useStore((s) => s.children);
-  const rooms = useStore((s) => s.rooms);
-  const calls = useStore((s) => s.calls);
-  const bracelets = useStore((s) => s.bracelets);
-  const addCall = useStore((s) => s.addCall);
-  const answerCall = useStore((s) => s.answerCall);
-  const reactivateCall = useStore((s) => s.reactivateCall);
-  const triggerFallback = useStore((s) => s.triggerFallback);
-  const updateChild = useStore((s) => s.updateChild);
+  const { children, updateChild } = useChildren();
+  const { rooms } = useChurch();
+  const { calls, addCall, answerCall, reactivateCall } = useCalls();
+  const { bracelets } = useBracelets();
 
   const [query, setQuery] = useState('');
   const [selectedChild, setSelectedChild] = useState<string | null>(null);
@@ -39,70 +36,55 @@ const Acionar = () => {
   const child = children.find((c) => c.id === selectedChild);
   const room = child ? rooms.find((r) => r.id === child.roomId) : null;
   const activeCall = activeCallId ? calls.find((c) => c.id === activeCallId) : null;
-
-  const bracelet = child?.braceletNumber
-    ? bracelets.find((b) => b.number === child.braceletNumber)
-    : null;
-
+  const bracelet = child?.braceletNumber ? bracelets.find((b) => b.number === child.braceletNumber) : null;
   const isUnreachable = bracelet?.connectivityStatus === 'unreachable';
-  const isWarning     = bracelet?.connectivityStatus === 'warning';
-  const isBatteryLow  = bracelet && bracelet.battery < 15;
-  const offlineSecs   = bracelet ? braceletOfflineSince(bracelet) : null;
+  const isWarning = bracelet?.connectivityStatus === 'warning';
+  const isBatteryLow = bracelet && bracelet.battery < 15;
+  const offlineSecs = bracelet ? braceletOfflineSince(bracelet) : null;
 
-  const handleCall = () => {
+  const handleCall = async () => {
     if (!child || selectedReason === null) return;
     setCalling(true);
-    setTimeout(() => {
-      const callId = 'call' + Date.now();
-      addCall({
-        id: callId,
+    try {
+      await addCall({
         childId: child.id,
         braceletNumber: child.braceletNumber || '??',
+        roomId: child.roomId,
         reason: reasons[selectedReason].label,
         reasonIcon: reasons[selectedReason].icon,
-        status: 'open',
-        createdAt: new Date().toISOString(),
-        answeredAt: null,
-        roomId: child.roomId,
-        answeredBy: null,
       });
-      updateChild(child.id, { status: 'called' });
-      setCalling(false);
-      setActiveCallId(callId);
+      await updateChild(child.id, { status: 'called' });
+      // Find the call we just created
+      const newCall = calls.find((c) => c.childId === child.id && c.status === 'open');
+      if (newCall) setActiveCallId(newCall.id);
       toast(`Pulseira #${child.braceletNumber || '??'} acionada! 🐑`);
       acionarPulseira(child.braceletNumber || '??', reasons[selectedReason].label).catch(() => {});
-      emitSync({ type: 'addCall', payload: { id: callId, childId: child.id, braceletNumber: child.braceletNumber || '??', reason: reasons[selectedReason].label, reasonIcon: reasons[selectedReason].icon, status: 'open', createdAt: new Date().toISOString(), answeredAt: null, roomId: child.roomId, answeredBy: null, braceletConnectivityAtCall: 'online', bleDeliveryStatus: 'pending', bleAttempts: 0, bleLastAttemptAt: null, fallbackTriggered: false, fallbackAttempts: [] } });
-    }, 1500);
+    } catch {
+      toast.error('Erro ao acionar pulseira');
+    } finally {
+      setCalling(false);
+    }
   };
 
-  const handleAnswered = () => {
+  const handleAnswered = async () => {
     if (activeCallId && child) {
-      answerCall(activeCallId, 'reception');
-      updateChild(child.id, { status: 'present' });
+      await answerCall(activeCallId, 'reception');
       toast('Pai chegou! ✓ 🐑');
       encerrarPulseira(child.braceletNumber || '??').catch(() => {});
-      emitSync({ type: 'answerCall', payload: { callId: activeCallId, answeredBy: 'reception' } });
-      emitSync({ type: 'updateChild', payload: { id: child.id, updates: { status: 'present' } } });
       setActiveCallId(null);
       setSelectedChild(null);
       setSelectedReason(null);
     }
   };
 
-  const handleReactivate = () => {
+  const handleReactivate = async () => {
     if (activeCallId) {
-      reactivateCall(activeCallId);
+      await reactivateCall(activeCallId);
       toast('Pulseira reacionada! 🐑');
     }
   };
 
   const handleFallback = (channel: 'whatsapp' | 'microphone' | 'volunteer') => {
-    if (!activeCallId) return;
-    triggerFallback(activeCallId, {
-      channel,
-      attemptedAt: new Date().toISOString(),
-      attemptedBy: 'reception',
-    });
     const labels = { whatsapp: 'WhatsApp enviado 🐑', microphone: 'Anúncio registrado 🐑', volunteer: 'Voluntário acionado 🐑' };
     toast(labels[channel]);
   };
@@ -135,86 +117,62 @@ const Acionar = () => {
     <div className="max-w-2xl mx-auto">
       <h1 className="font-heading font-black text-2xl text-foreground mb-6">Acionar Pai</h1>
 
-      {/* Search */}
       <div className="flex gap-2 mb-6">
         <div className="flex-1 relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <input
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); setSelectedChild(null); }}
+          <input value={query} onChange={(e) => { setQuery(e.target.value); setSelectedChild(null); }}
             placeholder="Nome ou número da criança..."
-            className="w-full pl-12 pr-4 py-3 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-          />
+            className="w-full pl-12 pr-4 py-3 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
         </div>
         <button className="w-12 h-12 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted transition-colors" onClick={() => toast('📷 Scanner de QR Code (simulado)')}>
           <Camera className="w-5 h-5 text-muted-foreground" />
         </button>
       </div>
 
-      {/* Results */}
       {!selectedChild && filtered.length > 0 && (
         <div className="space-y-2 mb-6 animate-fade-in">
           {filtered.map((c) => {
             const r = rooms.find((r) => r.id === c.roomId);
             return (
               <button key={c.id} onClick={() => setSelectedChild(c.id)} className="w-full bg-card rounded-card shadow-soft border border-border p-4 flex items-center gap-4 hover:shadow-medium transition-shadow text-left">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-heading font-bold text-primary text-sm">
-                  {c.name.charAt(0)}
-                </div>
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-heading font-bold text-primary text-sm">{c.name.charAt(0)}</div>
                 <div className="flex-1">
                   <p className="font-heading font-bold text-foreground">{c.name}</p>
                   <p className="text-sm text-muted-foreground">{r?.emoji} {r?.name}</p>
                 </div>
-                {c.braceletNumber && (
-                  <span className="bg-secondary/20 font-mono font-bold text-sm px-2 py-1 rounded-md text-foreground">#{c.braceletNumber}</span>
-                )}
+                {c.braceletNumber && <span className="bg-secondary/20 font-mono font-bold text-sm px-2 py-1 rounded-md text-foreground">#{c.braceletNumber}</span>}
               </button>
             );
           })}
         </div>
       )}
 
-      {/* Selected child */}
       {child && (
         <div className="animate-fade-in space-y-6">
           <div className="bg-card rounded-card shadow-soft border border-border p-6">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center font-heading font-black text-primary text-xl">
-                {child.name.charAt(0)}
-              </div>
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center font-heading font-black text-primary text-xl">{child.name.charAt(0)}</div>
               <div>
                 <h2 className="font-heading font-black text-xl text-foreground">{child.name}</h2>
                 <p className="text-muted-foreground text-sm">{room?.emoji} {room?.name} · {child.guardians[0]?.name}</p>
               </div>
-              {child.braceletNumber && (
-                <span className="ml-auto bg-secondary/20 font-mono font-bold text-lg px-3 py-1.5 rounded-xl text-foreground">#{child.braceletNumber}</span>
-              )}
+              {child.braceletNumber && <span className="ml-auto bg-secondary/20 font-mono font-bold text-lg px-3 py-1.5 rounded-xl text-foreground">#{child.braceletNumber}</span>}
             </div>
           </div>
 
-          {/* Connectivity warnings */}
           {isUnreachable && (
             <div className="bg-urgent/5 border border-urgent/30 rounded-card p-4 space-y-3">
               <div className="flex items-start gap-3">
                 <span className="text-xl">📡</span>
                 <div>
-                  <p className="font-heading font-bold text-urgent text-sm">
-                    Pulseira #{child.braceletNumber} sem sinal
-                    {offlineSecs !== null ? ` há ${offlineSecs}s` : ''}
-                  </p>
+                  <p className="font-heading font-bold text-urgent text-sm">Pulseira #{child.braceletNumber} sem sinal{offlineSecs !== null ? ` há ${offlineSecs}s` : ''}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">Pai pode não receber o alerta. Use uma alternativa:</p>
                 </div>
               </div>
               <div className="flex gap-2 flex-wrap">
-                <button onClick={() => handleFallback('whatsapp')} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-success/10 text-success border border-success/20 hover:bg-success/20 transition-colors">
-                  📱 Enviar WhatsApp
-                </button>
-                <button onClick={() => handleFallback('microphone')} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors">
-                  🎙️ Anunciar no microfone
-                </button>
-                <button onClick={() => handleFallback('volunteer')} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-secondary/10 text-foreground border border-secondary/20 hover:bg-secondary/20 transition-colors">
-                  🙋 Acionar voluntário
-                </button>
+                <button onClick={() => handleFallback('whatsapp')} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-success/10 text-success border border-success/20 hover:bg-success/20 transition-colors">📱 Enviar WhatsApp</button>
+                <button onClick={() => handleFallback('microphone')} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors">🎙️ Anunciar no microfone</button>
+                <button onClick={() => handleFallback('volunteer')} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-secondary/10 text-foreground border border-secondary/20 hover:bg-secondary/20 transition-colors">🙋 Acionar voluntário</button>
               </div>
             </div>
           )}
@@ -229,26 +187,16 @@ const Acionar = () => {
           {isBatteryLow && (
             <div className="bg-secondary/10 border border-secondary/30 rounded-card px-4 py-3 flex items-center gap-2">
               <span className="text-base">🔋</span>
-              <p className="text-sm font-medium text-foreground">
-                Bateria crítica ({bracelet?.battery}%) — considere trocar antes de acionar
-              </p>
+              <p className="text-sm font-medium text-foreground">Bateria crítica ({bracelet?.battery}%) — considere trocar antes de acionar</p>
             </div>
           )}
 
-          {/* Reason selector */}
           <div>
             <h3 className="font-heading font-bold text-foreground mb-3">Motivo da chamada</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {reasons.map((r, i) => (
-                <button
-                  key={r.label}
-                  onClick={() => setSelectedReason(i)}
-                  className={`p-4 rounded-card border text-center transition-all ${
-                    selectedReason === i
-                      ? 'border-primary bg-primary/5 shadow-soft'
-                      : 'border-border bg-card hover:bg-muted/30'
-                  }`}
-                >
+                <button key={r.label} onClick={() => setSelectedReason(i)}
+                  className={`p-4 rounded-card border text-center transition-all ${selectedReason === i ? 'border-primary bg-primary/5 shadow-soft' : 'border-border bg-card hover:bg-muted/30'}`}>
                   <span className="text-2xl block mb-1">{r.icon}</span>
                   <span className="text-sm font-medium text-foreground">{r.label}</span>
                 </button>
@@ -256,15 +204,8 @@ const Acionar = () => {
             </div>
           </div>
 
-          <button
-            onClick={handleCall}
-            disabled={selectedReason === null}
-            className={`w-full font-heading font-extrabold text-lg py-4 rounded-lg transition-opacity disabled:opacity-40 disabled:cursor-not-allowed ${
-              isUnreachable
-                ? 'bg-muted text-muted-foreground border border-border hover:opacity-80'
-                : 'bg-urgent text-urgent-foreground hover:opacity-90'
-            }`}
-          >
+          <button onClick={handleCall} disabled={selectedReason === null}
+            className={`w-full font-heading font-extrabold text-lg py-4 rounded-lg transition-opacity disabled:opacity-40 disabled:cursor-not-allowed ${isUnreachable ? 'bg-muted text-muted-foreground border border-border hover:opacity-80' : 'bg-urgent text-urgent-foreground hover:opacity-90'}`}>
             {isUnreachable ? 'Tentar mesmo assim' : 'CHAMAR PAI'}
           </button>
         </div>
@@ -273,21 +214,10 @@ const Acionar = () => {
   );
 };
 
-const WaitingScreen = ({
-  call,
-  childName,
-  onAnswered,
-  onReactivate,
-  onFallback,
-}: {
-  call: any;
-  childName: string;
-  onAnswered: () => void;
-  onReactivate: () => void;
-  onFallback: (channel: 'whatsapp' | 'microphone' | 'volunteer') => void;
+const WaitingScreen = ({ call, childName, onAnswered, onReactivate, onFallback }: {
+  call: any; childName: string; onAnswered: () => void; onReactivate: () => void; onFallback: (c: 'whatsapp' | 'microphone' | 'volunteer') => void;
 }) => {
   const [elapsed, setElapsed] = useState(0);
-
   useEffect(() => {
     const start = new Date(call.createdAt).getTime();
     const tick = () => setElapsed(Math.floor((Date.now() - start) / 1000));
@@ -305,30 +235,13 @@ const WaitingScreen = ({
       <div className="text-5xl mb-4 animate-pulse-urgent">{call.reasonIcon}</div>
       <h2 className="font-heading font-black text-2xl text-foreground mb-1">Aguardando pai...</h2>
       <p className="text-muted-foreground mb-6">{childName} · {call.reason}</p>
-
-      <div className="font-mono text-5xl font-bold text-foreground mb-4">
-        {mins}:{secs.toString().padStart(2, '0')}
-      </div>
-
+      <div className="font-mono text-5xl font-bold text-foreground mb-4">{mins}:{secs.toString().padStart(2, '0')}</div>
       <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-8">
         <div className="h-full bg-urgent rounded-full transition-all duration-1000" style={{ width: `${progress}%` }} />
       </div>
-
-      {call.fallbackTriggered && (
-        <div className="mb-6 bg-muted rounded-card px-4 py-3 text-sm text-muted-foreground text-left">
-          {call.fallbackAttempts.map((a: any, i: number) => (
-            <p key={i}>• {a.channel === 'whatsapp' ? '📱 WhatsApp enviado' : a.channel === 'microphone' ? '🎙️ Anúncio no microfone' : '🙋 Voluntário acionado'}</p>
-          ))}
-        </div>
-      )}
-
       <div className="flex gap-3 justify-center flex-wrap">
-        <button onClick={onAnswered} className="bg-success text-success-foreground font-heading font-bold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity">
-          ✓ Pai Chegou
-        </button>
-        <button onClick={onReactivate} className="bg-secondary text-secondary-foreground font-heading font-bold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity">
-          🔁 Reacionar
-        </button>
+        <button onClick={onAnswered} className="bg-success text-success-foreground font-heading font-bold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity">✓ Pai Chegou</button>
+        <button onClick={onReactivate} className="bg-secondary text-secondary-foreground font-heading font-bold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity">🔁 Reacionar</button>
       </div>
     </div>
   );
