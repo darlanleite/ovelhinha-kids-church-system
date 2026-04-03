@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '@/store/useStore';
 import { toast } from 'sonner';
-import { Plus, Trash2, Edit3, RefreshCw, Cpu } from 'lucide-react';
+import { Plus, Trash2, RefreshCw, Cpu } from 'lucide-react';
 
 const Configuracoes = () => {
   const settings = useStore((s) => s.settings);
@@ -11,6 +11,8 @@ const Configuracoes = () => {
   const addRoom = useStore((s) => s.addRoom);
   const removeRoom = useStore((s) => s.removeRoom);
   const updateBracelet = useStore((s) => s.updateBracelet);
+  const novoCulto = useStore((s) => s.novoCulto);
+  const [confirmando, setConfirmando] = useState(false);
 
   const [churchName, setChurchName] = useState(settings.churchName);
   const [reactivateMinutes, setReactivateMinutes] = useState(settings.reactivateMinutes);
@@ -126,6 +128,26 @@ const Configuracoes = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="bg-card rounded-card shadow-soft border border-border p-6">
+        <h2 className="font-heading font-extrabold text-lg text-foreground mb-4">🗂️ Novo Culto</h2>
+        <p className="text-sm text-muted-foreground mb-4">Limpa todas as crianças e chamadas do culto atual. As pulseiras voltam para "disponível".</p>
+        {!confirmando ? (
+          <button onClick={() => setConfirmando(true)} className="bg-urgent text-urgent-foreground font-heading font-bold text-sm px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity">
+            Iniciar novo culto
+          </button>
+        ) : (
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-foreground">Tem certeza? Isso apaga todos os dados do culto atual.</span>
+            <button onClick={() => { novoCulto(); setConfirmando(false); toast('Novo culto iniciado! Lista limpa. 🐑'); }} className="bg-urgent text-urgent-foreground font-heading font-bold text-sm px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+              Confirmar
+            </button>
+            <button onClick={() => setConfirmando(false)} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Cancelar
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="bg-card rounded-card shadow-soft border border-border p-6">

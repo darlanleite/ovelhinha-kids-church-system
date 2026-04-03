@@ -46,6 +46,9 @@ interface AppState {
   addGateway: (gateway: Gateway) => void;
   updateGateway: (id: string, updates: Partial<Gateway>) => void;
   removeGateway: (id: string) => void;
+
+  // Actions — culto
+  novoCulto: () => void;
 }
 
 export const useStore = create<AppState>()(
@@ -164,6 +167,17 @@ export const useStore = create<AppState>()(
         gateways: s.gateways.map((g) => g.id === id ? { ...g, ...updates } : g),
       })),
       removeGateway: (id) => set((s) => ({ gateways: s.gateways.filter((g) => g.id !== id) })),
+
+      novoCulto: () => set((s) => ({
+        children: [],
+        calls: [],
+        bracelets: s.bracelets.map((b) => ({
+          ...b,
+          status: b.status === 'in-use' ? 'available' as const : b.status,
+          guardianName: null,
+          childId: null,
+        })),
+      })),
     }),
     { name: 'ovelhinha-storage' }
   )
