@@ -1,7 +1,8 @@
 import { useStore } from '@/store/useStore';
-import { Users, Watch, AlertTriangle, BatteryLow } from 'lucide-react';
+import { Users, Watch, AlertTriangle, BatteryLow, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const children = useStore((s) => s.children);
@@ -9,6 +10,19 @@ const Dashboard = () => {
   const calls = useStore((s) => s.calls);
   const rooms = useStore((s) => s.rooms);
   const answerCall = useStore((s) => s.answerCall);
+  const updateChild = useStore((s) => s.updateChild);
+  const updateBracelet = useStore((s) => s.updateBracelet);
+
+  const checkout = (childId: string) => {
+    const child = children.find((c) => c.id === childId);
+    if (!child) return;
+    updateChild(childId, { status: 'left', braceletNumber: null });
+    if (child.braceletNumber) {
+      const bracelet = bracelets.find((b) => b.number === child.braceletNumber);
+      if (bracelet) updateBracelet(bracelet.id, { status: 'available', guardianName: null, childId: null });
+    }
+    toast(`Saída de ${child.name} registrada 🐑`);
+  };
 
   const presentChildren = children.filter((c) => c.status !== 'left');
   const activeBracelets = bracelets.filter((b) => b.status === 'in-use');
@@ -69,10 +83,11 @@ const Dashboard = () => {
                 <th className="text-left px-5 py-3 font-heading font-bold text-muted-foreground text-xs uppercase tracking-wider">Sala</th>
                 <th className="text-left px-5 py-3 font-heading font-bold text-muted-foreground text-xs uppercase tracking-wider">Pulseira</th>
                 <th className="text-left px-5 py-3 font-heading font-bold text-muted-foreground text-xs uppercase tracking-wider">Status</th>
+                <th className="px-5 py-3" />
               </tr>
             </thead>
             <tbody>
-              {children.map((child) => {
+              {children.filter((c) => c.status !== 'left').map((child) => {
                 const room = rooms.find((r) => r.id === child.roomId);
                 const statusStyles = {
                   present: 'bg-success/10 text-success',
@@ -95,6 +110,16 @@ const Dashboard = () => {
                       <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${statusStyles[child.status]}`}>
                         {statusLabel[child.status]}
                       </span>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      {child.status !== 'called' && (
+                        <button
+                          onClick={() => checkout(child.id)}
+                          className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-urgent transition-colors"
+                        >
+                          <LogOut className="w-3.5 h-3.5" /> Saída
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
