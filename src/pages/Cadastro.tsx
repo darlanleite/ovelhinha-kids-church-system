@@ -4,6 +4,7 @@ import { useChurch } from '@/hooks/useChurch';
 import { useBracelets } from '@/hooks/useBracelets';
 import { toast } from 'sonner';
 import { Check, ChevronRight } from 'lucide-react';
+import QRCode from 'react-qr-code';
 import PrintableLabel from '@/components/PrintableLabel';
 
 const steps = ['Criança', 'Responsável', 'Pulseira'];
@@ -104,7 +105,13 @@ const Cadastro = () => {
             <span>{rooms.find((r) => r.id === roomId)?.emoji} {rooms.find((r) => r.id === roomId)?.name}</span>
             <span>{new Date().toLocaleDateString('pt-BR')}</span>
           </div>
-          <div className="mt-4 w-24 h-24 bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-xs">QR Code</div>
+          <div className="mt-4 flex items-center justify-center">
+            {createdChildId ? (
+              <QRCode value={createdChildId} size={96} level="H" />
+            ) : (
+              <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-xs">QR Code</div>
+            )}
+          </div>
         </div>
         <div className="flex gap-3 justify-center print:hidden">
           <button onClick={() => window.print()} className="bg-primary text-primary-foreground font-heading font-bold px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors">
@@ -185,7 +192,7 @@ const Cadastro = () => {
                 
                 {showDropdown && searchQuery.length > 0 && (
                   <div className="absolute z-10 mx-[-1px] mt-1 w-[calc(100%+2px)] bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                    {children.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()) && c.status === 'left').map(child => (
+                    {children.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map(child => (
                       <div 
                         key={child.id}
                         onClick={() => {
@@ -205,7 +212,7 @@ const Cadastro = () => {
                         <p className="text-xs text-muted-foreground">Resp: {child.guardians?.[0]?.name || '---'}</p>
                       </div>
                     ))}
-                    {children.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()) && c.status === 'left').length === 0 && (
+                    {children.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
                       <div className="px-4 py-3 text-sm text-muted-foreground text-center">Nenhuma criança encontrada.</div>
                     )}
                   </div>
