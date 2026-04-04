@@ -192,26 +192,39 @@ const Cadastro = () => {
                 
                 {showDropdown && searchQuery.length > 0 && (
                   <div className="absolute z-10 mx-[-1px] mt-1 w-[calc(100%+2px)] bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                    {children.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map(child => (
-                      <div 
-                        key={child.id}
-                        onClick={() => {
-                          setSelectedChild(child);
-                          setSearchQuery(child.name);
-                          setShowDropdown(false);
-                          setChildName(child.name);
-                          if (child.guardians?.[0]) {
-                            setGuardianName(child.guardians[0].name);
-                            setGuardianPhone(child.guardians[0].phone);
-                          }
-                          if (child.roomId) setRoomId(child.roomId);
-                        }}
-                        className="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b border-border last:border-0"
-                      >
-                        <p className="font-medium text-foreground">{child.name}</p>
-                        <p className="text-xs text-muted-foreground">Resp: {child.guardians?.[0]?.name || '---'}</p>
-                      </div>
-                    ))}
+                    {children.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map(child => {
+                      const isPresent = child.status !== 'left';
+                      return (
+                        <div 
+                          key={child.id}
+                          onClick={() => {
+                            if (isPresent) return;
+                            setSelectedChild(child);
+                            setSearchQuery(child.name);
+                            setShowDropdown(false);
+                            setChildName(child.name);
+                            if (child.guardians?.[0]) {
+                              setGuardianName(child.guardians[0].name);
+                              setGuardianPhone(child.guardians[0].phone);
+                            }
+                            if (child.roomId) setRoomId(child.roomId);
+                          }}
+                          className={`px-4 py-3 border-b border-border last:border-0 flex justify-between items-center ${
+                            isPresent ? 'opacity-60 cursor-not-allowed bg-muted/20' : 'hover:bg-muted/50 cursor-pointer'
+                          }`}
+                        >
+                          <div>
+                            <p className="font-medium text-foreground">{child.name}</p>
+                            <p className="text-xs text-muted-foreground">Resp: {child.guardians?.[0]?.name || '---'}</p>
+                          </div>
+                          {isPresent && (
+                            <span className="text-[10px] font-bold px-2 py-1 bg-success/10 text-success rounded-full uppercase tracking-wider">
+                              No Culto
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                     {children.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
                       <div className="px-4 py-3 text-sm text-muted-foreground text-center">Nenhuma criança encontrada.</div>
                     )}
