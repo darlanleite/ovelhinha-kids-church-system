@@ -612,6 +612,8 @@ void startBLEExec(QueueItem& item) {
 
   // Configura e inicia scan BLE em background (não-bloqueante)
   NimBLEScan* pScan = NimBLEDevice::getScan();
+  pScan->stop();
+  pScan->clearResults();
   pScan->setScanCallbacks(&scanCallbacks, false);
   pScan->setActiveScan(true);
   pScan->setInterval(100);
@@ -636,8 +638,9 @@ void tickBLE() {
       bleExecState = BLE_EXEC_CONNECTING;
       return;
     }
-    // Timeout de scan
-    if (scanEnded || millis() - bleScanStart > (unsigned long)(BLE_SCAN_TIMEOUT + 1000)) {
+    // Timeout de scan — ignora scanEnded precoce (NimBLE 2.x dispara callback imediatamente em alguns casos)
+    unsigned long elapsed = millis() - bleScanStart;
+    if ((scanEnded && elapsed > 2000) || elapsed > (unsigned long)(BLE_SCAN_TIMEOUT + 1000)) {
       bleExecState = BLE_EXEC_FAILED;
     }
     return;
