@@ -177,6 +177,7 @@ bool          bleOccupied   = false;
 bool          deviceFound   = false;
 bool          scanEnded     = false;
 unsigned long bleScanStart  = 0;
+NimBLEAddress           foundAddress;
 NimBLEAdvertisedDevice* foundDevice = nullptr;
 
 // Estado LED
@@ -200,6 +201,7 @@ public:
     Serial.printf("[BLE] Encontrado: %s (RSSI: %d)\n", addr.c_str(), device->getRSSI());
     if (addr.equals(String(targetMAC))) {
       Serial.printf("[BLE] Alvo encontrado: %s\n", targetMAC);
+      foundAddress  = device->getAddress();  // copia o endereço antes do scan limpar
       foundDevice   = const_cast<NimBLEAdvertisedDevice*>(device);
       deviceFound   = true;
       NimBLEDevice::getScan()->stop();
@@ -693,13 +695,13 @@ void tickBLE() {
 
 // Conecta na pulseira e envia byte BLE — bloqueante ~300–500 ms
 bool doConnectAndSend() {
-  if (!foundDevice) return false;
+  if (!deviceFound) return false;
 
   NimBLEClient* pClient = NimBLEDevice::createClient();
   pClient->setConnectionParams(12, 12, 0, 51);
-  pClient->setConnectTimeout(5);
+  pClient->setConnectTimeout(10);
 
-  if (!pClient->connect(foundDevice)) {
+  if (!pClient->connect(foundAddress)) {
     Serial.println("[BLE] Falha na conexão");
     NimBLEDevice::deleteClient(pClient);
     return false;
