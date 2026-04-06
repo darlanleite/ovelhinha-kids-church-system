@@ -1,7 +1,19 @@
 import { supabase, CHURCH_ID } from './supabase'
 
-export async function acionarPulseira(braceletId: string, reason?: string) {
+async function getBraceletUUID(braceletNumber: string): Promise<string | null> {
+  const { data } = await supabase
+    .from('bracelets')
+    .select('id')
+    .eq('church_id', CHURCH_ID)
+    .eq('number', braceletNumber)
+    .single()
+  return data?.id ?? null
+}
+
+export async function acionarPulseira(braceletNumber: string, reason?: string) {
   try {
+    const braceletId = await getBraceletUUID(braceletNumber)
+    if (!braceletId) return false
     const { error } = await supabase.from('gateway_commands').insert({
       church_id: CHURCH_ID,
       bracelet_id: braceletId,
@@ -15,8 +27,10 @@ export async function acionarPulseira(braceletId: string, reason?: string) {
   }
 }
 
-export async function encerrarPulseira(braceletId: string) {
+export async function encerrarPulseira(braceletNumber: string) {
   try {
+    const braceletId = await getBraceletUUID(braceletNumber)
+    if (!braceletId) return false
     const { error } = await supabase.from('gateway_commands').insert({
       church_id: CHURCH_ID,
       bracelet_id: braceletId,
