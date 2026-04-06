@@ -72,6 +72,7 @@
  */
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <NimBLEDevice.h>
@@ -456,8 +457,10 @@ bool resolveEspId(const char* bracelet_id, char* out_esp_id) {
 // HTTP HELPERS
 // ============================================================
 String httpGet(const char* url) {
+  WiFiClientSecure client;
+  client.setInsecure();
   HTTPClient http;
-  http.begin(url);
+  http.begin(client, url);
   http.setTimeout(5000);
   http.addHeader("apikey",        SUPABASE_KEY);
   http.addHeader("Authorization", String("Bearer ") + SUPABASE_KEY);
@@ -475,8 +478,10 @@ String httpGet(const char* url) {
 }
 
 bool httpPatch(const char* url, const char* body) {
+  WiFiClientSecure client;
+  client.setInsecure();
   HTTPClient http;
-  http.begin(url);
+  http.begin(client, url);
   http.setTimeout(5000);
   http.addHeader("apikey",        SUPABASE_KEY);
   http.addHeader("Authorization", String("Bearer ") + SUPABASE_KEY);
@@ -491,8 +496,10 @@ bool httpPatch(const char* url, const char* body) {
 }
 
 bool httpPost(const char* url, const char* body) {
+  WiFiClientSecure client;
+  client.setInsecure();
   HTTPClient http;
-  http.begin(url);
+  http.begin(client, url);
   http.setTimeout(5000);
   http.addHeader("apikey",        SUPABASE_KEY);
   http.addHeader("Authorization", String("Bearer ") + SUPABASE_KEY);
