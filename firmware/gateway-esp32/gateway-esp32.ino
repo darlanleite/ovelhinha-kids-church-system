@@ -462,7 +462,7 @@ String httpGet(const char* url) {
   client.setInsecure();
   HTTPClient http;
   http.begin(client, url);
-  http.setTimeout(5000);
+  http.setTimeout(15000);
   http.addHeader("apikey",        SUPABASE_KEY);
   http.addHeader("Authorization", String("Bearer ") + SUPABASE_KEY);
   http.addHeader("Content-Type",  "application/json");
@@ -483,7 +483,7 @@ bool httpPatch(const char* url, const char* body) {
   client.setInsecure();
   HTTPClient http;
   http.begin(client, url);
-  http.setTimeout(5000);
+  http.setTimeout(15000);
   http.addHeader("apikey",        SUPABASE_KEY);
   http.addHeader("Authorization", String("Bearer ") + SUPABASE_KEY);
   http.addHeader("Content-Type",  "application/json");
@@ -501,7 +501,7 @@ bool httpPost(const char* url, const char* body) {
   client.setInsecure();
   HTTPClient http;
   http.begin(client, url);
-  http.setTimeout(5000);
+  http.setTimeout(15000);
   http.addHeader("apikey",        SUPABASE_KEY);
   http.addHeader("Authorization", String("Bearer ") + SUPABASE_KEY);
   http.addHeader("Content-Type",  "application/json");
