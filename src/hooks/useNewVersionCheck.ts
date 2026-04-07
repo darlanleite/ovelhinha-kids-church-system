@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-const POLL_INTERVAL = 5 * 60 * 1000 // 5 minutos
+const POLL_INTERVAL = 30 * 1000 // 30 segundos
 
 async function fetchBundleId(): Promise<string | null> {
   try {
