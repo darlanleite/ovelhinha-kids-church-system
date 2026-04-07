@@ -614,11 +614,10 @@ void processQueue() {
 void startBLEExec(QueueItem& item) {
   activeItem   = item;
   bleOccupied  = true;
-  deviceFound  = true; // conexão direta sem scan
   bleExecState = BLE_EXEC_CONNECTING;
 
   setLedMode(LED_BLUE_BLINK);
-  Serial.printf("[BLE] Conectando direto em %s | cmd: %s | motivo: %s\n",
+  Serial.printf("[BLE] Executando: %s | cmd: %s | motivo: %s\n",
     item.esp_id, item.command, item.reason);
 }
 
@@ -681,16 +680,43 @@ void tickBLE() {
 
 // Conecta na pulseira e envia byte BLE — bloqueante ~300–500 ms
 bool doConnectAndSend() {
-  NimBLEClient* pClient = NimBLEDevice::createClient();
+  // Scan bloqueante para descobrir endereço + tipo correto do dispositivo
+  String targetMAC = String(activeItem.esp_id);
+  targetMAC.toLowerCase();
 
-  // Tenta PUBLIC com timeout curto, depois RANDOM com timeout maior
-  pClient->setConnectTimeout(3);
-  bool connected = pClient->connect(NimBLEAddress(activeItem.esp_id, BLE_ADDR_PUBLIC));
-  if (!connected) {
-    pClient->setConnectTimeout(12);
-    connected = pClient->connect(NimBLEAddress(activeItem.esp_id, BLE_ADDR_RANDOM));
+  NimBLEScan* pScan = NimBLEDevice::getScan();
+  pScan->clearResults();
+  pScan->setActiveScan(true);
+  pScan->setInterval(100);
+  pScan->setWindow(99);
+
+  NimBLEAddress foundAddr;
+  bool found = false;
+
+  NimBLEScanResults results = pScan->start(BLE_SCAN_TIMEOUT / 1000);
+  for (int i = 0; i < results.getCount(); i++) {
+    const NimBLEAdvertisedDevice* dev = results.getDevice(i);
+    String addr = String(dev->getAddress().toString().c_str());
+    addr.toLowerCase();
+    Serial.printf("[BLE] Scan: %s\n", addr.c_str());
+    if (addr == targetMAC) {
+      foundAddr = dev->getAddress(); // preserva tipo de endereço correto
+      found = true;
+      break;
+    }
   }
-  if (!connected) {
+  pScan->clearResults();
+
+  if (!found) {
+    Serial.printf("[BLE] Dispositivo não encontrado: %s\n", activeItem.esp_id);
+    return false;
+  }
+
+  Serial.printf("[BLE] Encontrado: %s — conectando...\n", activeItem.esp_id);
+  NimBLEClient* pClient = NimBLEDevice::createClient();
+  pClient->setConnectTimeout(10);
+
+  if (!pClient->connect(foundAddr)) {
     Serial.println("[BLE] Falha na conexão");
     NimBLEDevice::deleteClient(pClient);
     return false;
