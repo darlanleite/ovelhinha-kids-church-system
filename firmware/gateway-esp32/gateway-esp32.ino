@@ -169,6 +169,7 @@ unsigned long lastPoll      = 0;
 unsigned long lastHeartbeat = 0;
 unsigned long lastWifiCheck = 0;
 unsigned long wifiLostAt    = 0;
+unsigned long bleGraceUntil = 0; // período de graça após BLE — não mostrar vermelho
 bool          wifiWasLost   = false;
 
 // Estado BLE
@@ -309,7 +310,7 @@ void updateLed() {
         setColor(0, 0, 0);
         pulseCount++;
         if (pulseTarget > 0 && pulseCount >= pulseTarget) {
-          setLedMode(LED_GREEN);
+          setLedMode(LED_GREEN_BLINK);
         }
       }
       break;
@@ -321,7 +322,7 @@ void updateLed() {
         setColor(0, 0, 0);
         pulseCount++;
         if (pulseTarget > 0 && pulseCount >= pulseTarget) {
-          setLedMode(LED_GREEN);
+          setLedMode(LED_GREEN_BLINK);
         }
       }
       break;
@@ -668,6 +669,7 @@ void tickBLE() {
       reasonToByte(activeItem.command, activeItem.reason));
     setLedMode(LED_WHITE_PULSE, 3);
     delay(2000); // ESP32-C3: aguarda WiFi se recuperar após BLE (rádio compartilhado)
+    bleGraceUntil = millis() + 5000; // 5s extras para WiFi estabilizar antes de mostrar vermelho
     bleOccupied  = false;
     bleExecState = BLE_EXEC_IDLE;
     return;
@@ -852,9 +854,9 @@ void loop() {
         wifiWasLost = true;
         Serial.println("[WIFI] Conexão perdida — reconectando...");
       }
-      // Não sobrescreve o LED azul durante execução BLE —
-      // queda de WiFi durante BLE é esperada (rádio compartilhado no ESP32-C3)
-      if (!bleOccupied) setLedMode(LED_RED_BLINK);
+      // Não sobrescreve o LED durante BLE nem no período de graça pós-BLE —
+      // queda de WiFi durante/após BLE é esperada (rádio compartilhado no ESP32-C3)
+      if (!bleOccupied && millis() > bleGraceUntil) setLedMode(LED_RED_BLINK);
       WiFi.reconnect();
       // Reinicia após 60s sem conexão
       if (now - wifiLostAt > WIFI_RESTART_MS) {
