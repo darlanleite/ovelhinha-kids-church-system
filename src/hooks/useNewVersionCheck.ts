@@ -1,42 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useRegisterSW } from 'virtual:pwa-register/react'
 
-const POLL_INTERVAL = 30 * 1000 // 30 segundos
-
-async function fetchBundleId(): Promise<string | null> {
-  try {
-    const res = await fetch('/?_v=' + Date.now(), { cache: 'no-store' })
-    const html = await res.text()
-    // O Vite embute o hash do bundle no src do script — muda a cada deploy
-    const match = html.match(/src="\/assets\/index-[^"]+\.js"/)
-    return match ? match[0] : null
-  } catch {
-    return null
-  }
-}
-
+// Usa o mecanismo nativo do service worker para detectar updates.
+// Isso funciona em desktop e mobile pois bypassa o cache do SW completamente.
 export function useNewVersionCheck() {
-  const [updateAvailable, setUpdateAvailable] = useState(false)
+  const {
+    needRefresh: [needRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegisteredSW(_swUrl, registration) {
+      // Verifica update a cada 30s chamando r.update() diretamente no SW
+      setInterval(() => {
+        registration?.update()
+      }, 30_000)
+    },
+  })
 
-  useEffect(() => {
-    let initialId: string | null = null
-    let cancelled = false
-
-    fetchBundleId().then((id) => { initialId = id })
-
-    const interval = setInterval(async () => {
-      if (cancelled) return
-      const current = await fetchBundleId()
-      if (initialId && current && current !== initialId) {
-        setUpdateAvailable(true)
-        clearInterval(interval)
-      }
-    }, POLL_INTERVAL)
-
-    return () => {
-      cancelled = true
-      clearInterval(interval)
-    }
-  }, [])
-
-  return updateAvailable
+  return { updateAvailable: needRefresh, updateServiceWorker }
 }

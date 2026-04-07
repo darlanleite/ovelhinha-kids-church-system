@@ -1,7 +1,7 @@
 import { useNewVersionCheck } from '@/hooks/useNewVersionCheck'
 
 export function UpdateBanner() {
-  const updateAvailable = useNewVersionCheck()
+  const { updateAvailable, updateServiceWorker } = useNewVersionCheck()
 
   if (!updateAvailable) return null
 
@@ -12,7 +12,7 @@ export function UpdateBanner() {
         <p className="text-sm font-medium text-white">Nova versão disponível</p>
       </div>
       <button
-        onClick={() => window.location.reload()}
+        onClick={() => updateServiceWorker(true)}
         className="shrink-0 rounded-lg bg-white px-4 py-1.5 text-sm font-bold text-primary hover:bg-white/90 transition-colors"
       >
         Atualizar
