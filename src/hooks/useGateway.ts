@@ -6,8 +6,7 @@ type GatewayStatus = 'online' | 'warning' | 'offline' | 'unknown'
 function computeStatus(lastSeen: string | null): GatewayStatus {
   if (!lastSeen) return 'unknown'
   const secs = (Date.now() - new Date(lastSeen).getTime()) / 1000
-  if (secs < 60) return 'online'
-  if (secs < 120) return 'warning'
+  if (secs < 90) return 'online'
   return 'offline'
 }
 

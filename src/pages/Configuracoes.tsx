@@ -107,36 +107,15 @@ const Configuracoes = () => {
       {/* Gateway Status */}
       <div className="bg-card rounded-card shadow-soft border border-border p-6">
         <h2 className="font-heading font-extrabold text-lg text-foreground mb-4">📡 Gateway BLE</h2>
-        <div className="flex items-center gap-4">
-          <div className={`w-3 h-3 rounded-full shrink-0 ${
-            gwStatus === 'online'  ? 'bg-success animate-pulse' :
-            gwStatus === 'warning' ? 'bg-secondary' :
-            gwStatus === 'offline' ? 'bg-urgent' :
-            'bg-muted-foreground'
-          }`} />
-          <div className="flex-1">
-            <p className="font-heading font-bold text-foreground text-sm">{gwName}</p>
-            <p className="text-xs text-muted-foreground">
-              {gwStatus === 'online'  && secsAgo !== null ? `Online · visto há ${secsAgo}s` :
-               gwStatus === 'warning' && secsAgo !== null ? `Sinal fraco · visto há ${secsAgo}s` :
-               gwStatus === 'offline' ? 'Offline — verifique a alimentação e o WiFi' :
-               'Aguardando primeiro heartbeat...'}
-            </p>
-          </div>
-          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-            gwStatus === 'online'  ? 'bg-success/10 text-success' :
-            gwStatus === 'warning' ? 'bg-secondary/20 text-foreground' :
-            gwStatus === 'offline' ? 'bg-urgent/10 text-urgent' :
-            'bg-muted text-muted-foreground'
-          }`}>
-            {gwStatus === 'online' ? 'Online' : gwStatus === 'warning' ? 'Atenção' : gwStatus === 'offline' ? 'Offline' : 'Desconhecido'}
+        <div className="flex items-center gap-3">
+          <div className={`w-3 h-3 rounded-full shrink-0 ${gwStatus === 'online' ? 'bg-success animate-pulse' : 'bg-urgent'}`} />
+          <p className="font-heading font-bold text-foreground text-sm flex-1">{gwName}</p>
+          <p className="text-xs text-muted-foreground">
+            {secsAgo !== null ? `último ping há ${secsAgo}s` : '—'}
+          </p>
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${gwStatus === 'online' ? 'bg-success/10 text-success' : 'bg-urgent/10 text-urgent'}`}>
+            {gwStatus === 'online' ? 'Online' : 'Offline'}
           </span>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg p-3">
-          <span>🔴 sólido — conectando WiFi</span>
-          <span>🟢 sólido — pronto</span>
-          <span>🔵 piscando — enviando BLE</span>
-          <span>⚪ pulsos — comando enviado</span>
         </div>
       </div>
 
