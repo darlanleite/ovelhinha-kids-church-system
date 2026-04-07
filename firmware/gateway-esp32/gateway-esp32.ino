@@ -655,6 +655,7 @@ void tickBLE() {
       activeItem.bracelet_id,
       reasonToByte(activeItem.command, activeItem.reason));
     setLedMode(LED_WHITE_PULSE, 3);
+    delay(2000); // ESP32-C3: aguarda WiFi se recuperar após BLE (rádio compartilhado)
     bleOccupied  = false;
     bleExecState = BLE_EXEC_IDLE;
     return;
