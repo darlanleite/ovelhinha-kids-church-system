@@ -244,21 +244,79 @@ Atualizar `VITE_BACKEND_URL` no `.env` com a URL do ngrok.
 
 ---
 
-## Firmware ESP32-C3 (firmware/pulseira-ble/)
+## Firmware ESP32-C3
 
-### LED RGB — Ânodo comum
+### Pulseiras (firmware/pulseira-ble/)
+
+#### LED RGB — Ânodo comum
 - Pino mais longo (ânodo) → 3V3
 - LOW = acende, HIGH = apaga
-- Pinos: PIN_R=2, PIN_G=3, PIN_B=4 (B e R estavam invertidos fisicamente)
+- Pinos: PIN_R=2, PIN_G=3, PIN_B=4
 
-### Cores por motivo
-- Vermelho = Urgência
-- Amarelo = Banheiro / outros
-- Verde = confirmação
+#### Protocolo BLE — 1 byte
+| Byte | Cor | Motivo |
+|------|-----|--------|
+| `0x00` | Apaga | Pai chegou / encerrar |
+| `0x01` | Vermelho piscando rápido (250ms) | Urgência |
+| `0x02` | Amarelo piscando (500ms) | Banheiro |
+| `0x03` | Azul piscando (500ms) | Chorando / Passando mal / Amamentação |
+| `0x04` | Branco fixo | Outro |
 
-### Comandos BLE
-- `0x01` = acionar (acende LED)
-- `0x02` = encerrar (apaga LED)
+#### UUIDs BLE (iguais em todas as pulseiras e no gateway)
+- Service: `12345678-1234-1234-1234-123456789012`
+- Characteristic: `87654321-4321-4321-4321-210987654321`
+- Propriedade: `WRITE` (gateway escreve 1 byte)
+
+#### MAC BLE
+- Impresso no Serial Monitor ao ligar: `>>> MAC BLE: aa:bb:cc:dd:ee:ff`
+- Copiar este valor (lowercase) para o campo `esp_id` em Configurações > ESP32
+
+---
+
+### Gateway (firmware/gateway-esp32/)
+
+#### Configuração Arduino IDE
+- **Board:** ESP32C3 Dev Module
+- **Partition Scheme:** Huge APP (3MB No OTA/1MB SPIFFS) — firmware não cabe no esquema padrão
+- **Dependências:** NimBLE-Arduino by h2zero + ArduinoJson by Benoit Blanchon (v7.x)
+
+#### Coexistência BLE + WiFi no ESP32-C3
+O rádio é compartilhado — sem a linha abaixo, o WiFi cai após BLE ativo:
+```cpp
+WiFi.setSleep(false); // logo após WiFi.begin() conectar
+```
+
+#### HTTPS no ESP32-C3
+Usar `WiFiClientSecure` com `setInsecure()` (sem certificado) para todas as chamadas ao Supabase:
+```cpp
+WiFiClientSecure client;
+client.setInsecure();
+HTTPClient http;
+http.begin(client, url);
+http.setTimeout(15000); // TLS handshake é lento — mínimo 15s
+```
+
+#### NimBLE 2.x — mudanças de API críticas
+| API | v1.x | v2.x |
+|-----|------|------|
+| `onResult` | `(NimBLEAdvertisedDevice*)` | `(const NimBLEAdvertisedDevice*)` |
+| `onScanEnd` | `(NimBLEScanResults)` | `(const NimBLEScanResults& results, int reason)` |
+| `setConnectTimeout` | segundos | **milissegundos** — `setConnectTimeout(10)` = 10ms (bug!) |
+| `pScan->start()` | retorna `NimBLEScanResults` | retorna `bool` |
+| `setTimeout` | existe | removido → usar `setConnectTimeout` |
+
+**`setConnectTimeout` correto:** `pClient->setConnectTimeout(10000)` = 10 segundos
+
+#### NimBLE 2.x — armadilhas no scan/connect
+1. **Nunca chamar `stop()` dentro de `onResult`** — o callback roda na task BLE; chamar stop() de dentro corrompe o stack e faz todo `connect()` subsequente falhar silenciosamente.
+2. **`onScanEnd` dispara prematuramente** no ESP32-C3 com NimBLE 2.x. Ignorar `scanEnded` no loop de espera; usar deadline por tempo. Reiniciar o scan se encerrar antes:
+   ```cpp
+   pScan->start(0, false); // 0 = indefinido, só para com stop()
+   // se onScanEnd disparar antes → pScan->start(0, false) novamente
+   ```
+3. **`setActiveScan(true)` necessário** — passive scan (`false`) não detecta devices no ESP32-C3.
+4. **Copiar `NimBLEAddress` antes de `clearResults()`** — ponteiro `NimBLEAdvertisedDevice*` fica dangling após limpar. Usar `NimBLEAddress foundAddress = device->getAddress()` (cópia por valor).
+5. **Delay após stop scan:** aguardar 500ms entre `pScan->stop()` e `pClient->connect()` para o stack sair completamente do modo scan.
 
 ---
 
@@ -266,17 +324,31 @@ Atualizar `VITE_BACKEND_URL` no `.env` com a URL do ngrok.
 
 ```
 [Tablet da recepção / Mobile da tia]
-        ↓ HTTPS (Supabase Realtime)
+        ↓ HTTPS — insere em gateway_commands (status=pending)
 [Supabase] ← banco de dados + sync entre dispositivos
-
-[Tablet da recepção]
-        ↓ HTTP (ngrok → localhost:3001)
-[Backend Node.js — server/index.js]
-        ↓ WebSocket
-[Gateway BLE — server/gateway.js]
+        ↑ poll a cada 2s (HTTP GET)
+[Gateway ESP32-C3 — firmware/gateway-esp32/]
         ↓ BLE 5.0
 [Pulseiras dos pais — ESP32-C3 + LED RGB]
 ```
+
+### Tabelas do gateway
+| Tabela | Descrição |
+|--------|-----------|
+| `gateway_commands` | Fila de comandos: `command` (acionar/encerrar), `status` (pending/sent/failed) |
+| `gateways` | Registro do gateway com `last_seen` (heartbeat a cada 30s) |
+| `bracelets.esp_id` | MAC BLE da pulseira em lowercase (ex: `a4:cb:8f:21:15:06`) |
+
+### Como o app envia comandos
+`src/lib/esp32.ts` usa `fetch()` direto com `apikey` header explícito (o cliente Supabase tipado não conhece `gateway_commands` e omite o header):
+```typescript
+fetch(`${SUPABASE_URL}/rest/v1/gateway_commands`, {
+  method: 'POST',
+  headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, ... },
+  body: JSON.stringify({ church_id, bracelet_id, command, status: 'pending' })
+})
+```
+`bracelet_id` é o UUID — buscar via `bracelets.select('id').eq('number', braceletNumber)`.
 
 ### Componentes por pulseira
 - ESP32-C3 Super Mini (~R$14)
@@ -351,11 +423,13 @@ Atualizar `VITE_BACKEND_URL` no `.env` com a URL do ngrok.
 - **Impressão de etiqueta:** `PrintableLabel.tsx` com nome, sala, número da pulseira e QR Code — usa `window.print()` + classes Tailwind `print:flex` / `print:hidden`
 - **Scanner QR Code na TiaDaSala:** `html5-qrcode` lê UUID do QR Code e abre automaticamente o painel de motivos da criança correspondente
 - **Desvincular pulseira em Pulseiras.tsx:** botão "Desvincular" em pulseiras `in-use` chama `updateChild` (status→left) e libera a bracelet
+- **Gateway ESP32-C3:** firmware que faz poll no Supabase (`gateway_commands`) e executa comandos BLE nas pulseiras — fluxo completo app → Supabase → gateway → BLE → LED funcionando
+- **Fluxo BLE confiável:** acionar (byte 0x01) e encerrar (byte 0x00) funcionando de forma consistente com NimBLE 2.x
 
 ### ⏳ Próximos passos
 - Check-out por pulseira (criança só sai com par correto)
 - Reacionamento automático após X minutos
-- Notificação por WhatsApp
+- Notificação por WhatsApp / push nativo no celular
 
 ---
 
