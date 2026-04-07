@@ -790,8 +790,11 @@ void setup() {
   NimBLEDevice::setPower(ESP_PWR_LVL_P9);
   Serial.println("[BOOT] NimBLE inicializado");
 
-  // Carrega mapa bracelet_id → esp_id
-  loadBracelets();
+  // Carrega mapa bracelet_id → esp_id (com retry se falhar)
+  for (int i = 0; i < 3 && braceletCount == 0; i++) {
+    if (i > 0) { Serial.println("[HTTP] Retry mapa pulseiras..."); delay(3000); }
+    loadBracelets();
+  }
 
   // Registra/atualiza gateway no Supabase
   registerGateway();
