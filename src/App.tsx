@@ -33,7 +33,7 @@ const ReceptionPage = ({ children }: { children: React.ReactNode }) => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Sonner position="top-right" toastOptions={{ className: 'font-body' }} />
+      <Sonner position="bottom-center" toastOptions={{ className: 'font-body' }} />
       <UpdateBanner />
       <BrowserRouter>
         <Routes>

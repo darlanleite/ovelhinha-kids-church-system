@@ -7,6 +7,7 @@ import { useChurch } from '@/hooks/useChurch';
 import { Search, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { acionarPulseira } from '@/lib/esp32';
+import OvelhinhaLogo from '@/components/OvelhinhaLogo';
 
 const reasons = [
   { icon: '🚽', label: 'Banheiro' },
@@ -120,16 +121,15 @@ const TiaDaSala = () => {
 
   return (
     <div className="min-h-screen bg-background max-w-[430px] mx-auto">
-      {arrival && (
-        <div className="bg-success text-success-foreground py-3 px-4 text-center font-heading font-bold text-sm animate-slide-down">
-          {arrival}
-        </div>
-      )}
-
       <header className="bg-primary px-4 pb-3 flex items-center gap-2" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}>
-        <span className="text-lg">🐑</span>
+        <OvelhinhaLogo size={28} white />
         <span className="font-heading font-extrabold text-primary-foreground">Ovelhinha</span>
-        <span className="ml-auto text-primary-foreground/80 text-sm">{room?.emoji} {room?.name}</span>
+        {arrival && (
+          <div className="flex-1 text-center text-primary-foreground font-bold text-xs animate-fade-in truncate px-2">
+            ✓ {arrival}
+          </div>
+        )}
+        <span className="ml-auto text-primary-foreground/80 text-sm shrink-0">{room?.emoji} {room?.name}</span>
       </header>
 
       <div className="p-6 flex justify-center">
