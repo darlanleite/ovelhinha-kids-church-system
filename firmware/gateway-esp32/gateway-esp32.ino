@@ -708,8 +708,10 @@ bool doConnectAndSend() {
 
   Serial.printf("[BLE] Encontrado: %s — conectando...\n", activeItem.esp_id);
   pScan->clearResults();
+  delay(300); // Aguarda BLE stack sair do modo scan antes de conectar
 
   NimBLEClient* pClient = NimBLEDevice::createClient();
+  pClient->setConnectionParams(12, 12, 0, 51);
   pClient->setConnectTimeout(10);
 
   if (!pClient->connect(foundAddress)) {
