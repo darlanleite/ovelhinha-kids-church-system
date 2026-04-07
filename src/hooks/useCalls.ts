@@ -73,27 +73,54 @@ export function useCalls() {
       reason: data.reason,
       reason_icon: data.reasonIcon,
       status: 'open',
-    }).select('id').single()
+    }).select('id, created_at').single()
     if (error) throw error
+
+    // Injeta a chamada no cache local imediatamente — não espera o ciclo realtime
+    const newCall: Call = {
+      id: row.id,
+      childId: data.childId,
+      braceletNumber: data.braceletNumber,
+      roomId: data.roomId,
+      reason: data.reason,
+      reasonIcon: data.reasonIcon,
+      status: 'open',
+      answeredBy: null,
+      createdAt: row.created_at,
+      answeredAt: null,
+    }
+    queryClient.setQueryData(['calls', CHURCH_ID], (old: Call[] = []) => [newCall, ...old])
+
     return row.id as string
   }
 
   async function answerCall(callId: string, answeredBy: 'reception' | 'tia') {
+    const call = calls.find((c) => c.id === callId)
+    const answeredAt = new Date().toISOString()
+
     const { error } = await supabase.rpc('answer_call', {
       p_call_id: callId,
       p_answered_by: answeredBy,
     })
     if (error) {
       // Fallback se a função RPC não existir: faz os 3 updates manualmente
-      const call = calls.find((c) => c.id === callId)
-      await supabase.from('calls').update({ status: 'answered', answered_at: new Date().toISOString(), answered_by: answeredBy }).eq('id', callId)
+      await supabase.from('calls').update({ status: 'answered', answered_at: answeredAt, answered_by: answeredBy }).eq('id', callId)
       if (call) {
         await supabase.from('children').update({ status: 'present' }).eq('id', call.childId)
         await supabase.from('bracelets').update({ status: 'available', guardian_name: null, child_id: null }).eq('church_id', CHURCH_ID).eq('number', call.braceletNumber)
       }
     }
+
+    // Atualiza caches locais imediatamente
+    queryClient.setQueryData(['calls', CHURCH_ID], (old: Call[] = []) =>
+      old.map((c) => c.id === callId ? { ...c, status: 'answered' as const, answeredBy, answeredAt } : c)
+    )
+    if (call) {
+      queryClient.setQueryData(['children', CHURCH_ID], (old: Call[] = []) =>
+        old.map((c: any) => c.id === call.childId ? { ...c, status: 'present' } : c)
+      )
+    }
     queryClient.invalidateQueries({ queryKey: ['bracelets', CHURCH_ID] })
-    queryClient.invalidateQueries({ queryKey: ['children', CHURCH_ID] })
   }
 
   async function reactivateCall(callId: string) {

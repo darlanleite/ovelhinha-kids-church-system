@@ -106,6 +106,11 @@ export function useChildren() {
 
     const { error } = await supabase.from('children').update(dbUpdates).eq('id', id)
     if (error) throw error
+
+    // Atualiza o cache local imediatamente — não espera o ciclo realtime (lento no mobile)
+    queryClient.setQueryData(['children', CHURCH_ID], (old: Child[] = []) =>
+      old.map((c) => (c.id === id ? { ...c, ...updates } : c))
+    )
   }
 
   async function checkInChild(id: string, braceletNumber: string, roomId: string) {
