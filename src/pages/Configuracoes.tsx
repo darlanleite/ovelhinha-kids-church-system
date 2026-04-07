@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useChurch } from '@/hooks/useChurch';
 import { useBracelets } from '@/hooks/useBracelets';
+import { useGateway } from '@/hooks/useGateway';
 import { toast } from 'sonner';
 import { Plus, Trash2, RefreshCw, Cpu } from 'lucide-react';
 
 const Configuracoes = () => {
   const { settings, rooms, updateSettings, generateDailyCode, addRoom, removeRoom, novoCulto } = useChurch();
   const { bracelets, updateBracelet } = useBracelets();
+  const { status: gwStatus, secsAgo, name: gwName } = useGateway();
   const [confirmando, setConfirmando] = useState(false);
   const [churchName, setChurchName] = useState(settings.churchName);
   const [reactivateMinutes, setReactivateMinutes] = useState(settings.reactivateMinutes);
@@ -100,6 +102,42 @@ const Configuracoes = () => {
           </button>
         </div>
         <p className="text-sm text-muted-foreground mt-2">Compartilhe este código com as tias da sala</p>
+      </div>
+
+      {/* Gateway Status */}
+      <div className="bg-card rounded-card shadow-soft border border-border p-6">
+        <h2 className="font-heading font-extrabold text-lg text-foreground mb-4">📡 Gateway BLE</h2>
+        <div className="flex items-center gap-4">
+          <div className={`w-3 h-3 rounded-full shrink-0 ${
+            gwStatus === 'online'  ? 'bg-success animate-pulse' :
+            gwStatus === 'warning' ? 'bg-secondary' :
+            gwStatus === 'offline' ? 'bg-urgent' :
+            'bg-muted-foreground'
+          }`} />
+          <div className="flex-1">
+            <p className="font-heading font-bold text-foreground text-sm">{gwName}</p>
+            <p className="text-xs text-muted-foreground">
+              {gwStatus === 'online'  && secsAgo !== null ? `Online · visto há ${secsAgo}s` :
+               gwStatus === 'warning' && secsAgo !== null ? `Sinal fraco · visto há ${secsAgo}s` :
+               gwStatus === 'offline' ? 'Offline — verifique a alimentação e o WiFi' :
+               'Aguardando primeiro heartbeat...'}
+            </p>
+          </div>
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+            gwStatus === 'online'  ? 'bg-success/10 text-success' :
+            gwStatus === 'warning' ? 'bg-secondary/20 text-foreground' :
+            gwStatus === 'offline' ? 'bg-urgent/10 text-urgent' :
+            'bg-muted text-muted-foreground'
+          }`}>
+            {gwStatus === 'online' ? 'Online' : gwStatus === 'warning' ? 'Atenção' : gwStatus === 'offline' ? 'Offline' : 'Desconhecido'}
+          </span>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg p-3">
+          <span>🔴 sólido — conectando WiFi</span>
+          <span>🟢 sólido — pronto</span>
+          <span>🔵 piscando — enviando BLE</span>
+          <span>⚪ pulsos — comando enviado</span>
+        </div>
       </div>
 
       {/* ESP IDs */}
