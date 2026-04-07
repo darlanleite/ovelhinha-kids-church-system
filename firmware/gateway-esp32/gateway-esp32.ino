@@ -683,11 +683,10 @@ bool doConnectAndSend() {
   NimBLEClient* pClient = NimBLEDevice::createClient();
   pClient->setConnectTimeout(15);
 
-  // Tenta primeiro como endereço random (padrão do ESP32-C3 com NimBLE)
-  // depois como public como fallback
-  bool connected = pClient->connect(NimBLEAddress(activeItem.esp_id, BLE_ADDR_RANDOM));
+  // ESP32-C3 usa endereço público por padrão — tenta public primeiro, random como fallback
+  bool connected = pClient->connect(NimBLEAddress(activeItem.esp_id, BLE_ADDR_PUBLIC));
   if (!connected) {
-    connected = pClient->connect(NimBLEAddress(activeItem.esp_id, BLE_ADDR_PUBLIC));
+    connected = pClient->connect(NimBLEAddress(activeItem.esp_id, BLE_ADDR_RANDOM));
   }
   if (!connected) {
     Serial.println("[BLE] Falha na conexão");
