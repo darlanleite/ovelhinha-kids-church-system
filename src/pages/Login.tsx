@@ -10,7 +10,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const Login = () => {
   const isMobile = useIsMobile();
   const [role, setRole] = useState<'reception' | 'tia' | null>(null);
-  const effectiveRole = isMobile ? (role ?? 'tia') : role;
+  const receptionRoutes = ['/dashboard', '/cadastro', '/acionar', '/pulseiras', '/relatorios', '/configuracoes', '/gestor'];
+  const comingFromReception = from ? receptionRoutes.some((r) => from.startsWith(r)) : false;
+  const effectiveRole = isMobile ? (role ?? (comingFromReception ? 'reception' : 'tia')) : role;
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
   const login = useAppStore((s) => s.login);
