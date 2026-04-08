@@ -3,6 +3,17 @@ import { useEffect } from 'react'
 import { supabase, CHURCH_ID } from '@/lib/supabase'
 import type { Call } from '@/store/types'
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+
+function sendPush(payload: Record<string, unknown>) {
+  fetch(`${SUPABASE_URL}/functions/v1/notify-call`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+    body: JSON.stringify(payload),
+  }).catch(() => {})
+}
+
 type CallRow = {
   id: string
   child_id: string
@@ -60,6 +71,7 @@ export function useCalls() {
 
   async function addCall(data: {
     childId: string
+    childName: string
     braceletNumber: string
     roomId: string
     reason: string
@@ -91,10 +103,19 @@ export function useCalls() {
     }
     queryClient.setQueryData(['calls', CHURCH_ID], (old: Call[] = []) => [newCall, ...old])
 
+    sendPush({
+      church_id: CHURCH_ID,
+      type: 'call_created',
+      child_name: data.childName,
+      bracelet_number: data.braceletNumber,
+      reason: data.reason,
+      room_id: data.roomId,
+    })
+
     return row.id as string
   }
 
-  async function answerCall(callId: string, answeredBy: 'reception' | 'tia') {
+  async function answerCall(callId: string, answeredBy: 'reception' | 'tia', childName?: string) {
     const call = calls.find((c) => c.id === callId)
     const answeredAt = new Date().toISOString()
 
@@ -121,6 +142,16 @@ export function useCalls() {
       )
     }
     queryClient.invalidateQueries({ queryKey: ['bracelets', CHURCH_ID] })
+
+    if (childName && call) {
+      sendPush({
+        church_id: CHURCH_ID,
+        type: 'call_answered',
+        child_name: childName,
+        bracelet_number: call.braceletNumber,
+        room_id: call.roomId,
+      })
+    }
   }
 
   async function reactivateCall(callId: string) {

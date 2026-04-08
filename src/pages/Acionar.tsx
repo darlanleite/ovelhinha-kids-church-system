@@ -59,6 +59,7 @@ const Acionar = () => {
     try {
       const callId = await addCall({
         childId: child.id,
+        childName: child.name,
         braceletNumber: child.braceletNumber || '??',
         roomId: child.roomId,
         reason: reasons[selectedReason].label,
@@ -77,7 +78,7 @@ const Acionar = () => {
 
   const handleAnswered = async () => {
     if (activeCallId && child) {
-      await answerCall(activeCallId, 'reception');
+      await answerCall(activeCallId, 'reception', child.name);
       toast('Pai chegou! ✓ 🐑');
       encerrarPulseira(child.braceletNumber || '??').catch(() => {});
       setActiveCallId(null);

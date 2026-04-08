@@ -13,6 +13,7 @@ import Configuracoes from "./pages/Configuracoes";
 import DashboardLayout from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 import { UpdateBanner } from "./components/UpdateBanner";
+import { PushBanner } from "./components/PushBanner";
 import { useAppStore } from "./store/useAppStore";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
     <TooltipProvider>
       <Sonner position="bottom-center" toastOptions={{ className: 'font-body' }} />
       <UpdateBanner />
+      <PushBanner />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />

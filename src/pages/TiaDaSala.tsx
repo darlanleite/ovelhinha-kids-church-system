@@ -79,6 +79,7 @@ const TiaDaSala = () => {
     try {
       await addCall({
         childId: child.id,
+        childName: child.name,
         braceletNumber: child.braceletNumber || '??',
         roomId: child.roomId,
         reason: reasons[reasonIdx].label,
