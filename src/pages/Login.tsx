@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Monitor } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { useChurch } from '@/hooks/useChurch';
@@ -17,6 +17,8 @@ const Login = () => {
   const { settings, rooms } = useChurch();
   const [selectedRoom, setSelectedRoom] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string })?.from;
 
   useEffect(() => {
     if (rooms.length > 0 && !selectedRoom) setSelectedRoom(rooms[0].id);
@@ -28,7 +30,7 @@ const Login = () => {
       if (password === '1234') {
         login('reception');
         toast('Bem-vindo(a)! 🐑');
-        navigate('/dashboard');
+        navigate(from || '/dashboard');
       } else {
         toast.error('Senha incorreta');
       }

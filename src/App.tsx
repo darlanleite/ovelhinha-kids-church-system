@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Login from "./pages/Login";
@@ -21,7 +21,8 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode; role?: 'reception' | 'tia' }) => {
   const userRole = useAppStore((s) => s.userRole);
-  if (!userRole) return <Navigate to="/" replace />;
+  const location = useLocation();
+  if (!userRole) return <Navigate to="/" state={{ from: location.pathname }} replace />;
   if (role && userRole !== role) return <Navigate to="/" replace />;
   return <>{children}</>;
 };
