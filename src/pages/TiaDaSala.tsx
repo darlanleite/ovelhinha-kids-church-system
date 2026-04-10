@@ -4,7 +4,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { useChildren } from '@/hooks/useChildren';
 import { useCalls } from '@/hooks/useCalls';
 import { useChurch } from '@/hooks/useChurch';
-import { Search, Camera } from 'lucide-react';
+import { Search, Camera, Users, Bell, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { acionarPulseira } from '@/lib/esp32';
 import OvelhinhaLogo from '@/components/OvelhinhaLogo';
@@ -28,12 +28,19 @@ const TiaDaSala = () => {
 
   const room = rooms.find((r) => r.id === tiaRoom);
   const roomChildren = children.filter((c) => c.roomId === tiaRoom && c.status !== 'left');
+  const calledChildren = roomChildren.filter((c) => c.status === 'called');
+  const [emergencyLoading, setEmergencyLoading] = useState(false);
 
   const [query, setQuery] = useState('');
   const [confirmation, setConfirmation] = useState<string | null>(null);
   const [arrival, setArrival] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
+  const [scanMode, setScanMode] = useState<'call' | 'checkout'>('call');
   const [scannedChildId, setScannedChildId] = useState<string | null>(null);
+  const [checkoutChild, setCheckoutChild] = useState<string | null>(null); // childId aguardando confirmação
+  const [checkoutBracelet, setCheckoutBracelet] = useState('');
+  const [checkoutQuery, setCheckoutQuery] = useState('');
+  const [checkoutMode, setCheckoutMode] = useState(false);
 
   const filtered = query.trim()
     ? roomChildren.filter((c) => c.name.toLowerCase().includes(query.toLowerCase()))
@@ -63,17 +70,63 @@ const TiaDaSala = () => {
         scanner.clear();
         setScanning(false);
         const childExists = roomChildren.find(c => c.id === text);
-        if (childExists) {
+        if (!childExists) { toast.error("QR Code não reconhecido nesta sala"); return; }
+        if (scanMode === 'checkout') {
+          setCheckoutChild(childExists.id);
+          setCheckoutBracelet('');
+        } else {
           setQuery(childExists.name);
           setScannedChildId(childExists.id);
           toast.success(`Criança encontrada: ${childExists.name}`);
-        } else {
-          toast.error("QR Code não reconhecido nesta sala");
         }
       }, () => {});
       return () => { scanner.clear().catch(() => {}); };
     }
-  }, [scanning, roomChildren]);
+  }, [scanning, roomChildren, scanMode]);
+
+  const handleCheckoutConfirm = async () => {
+    const child = children.find((c) => c.id === checkoutChild);
+    if (!child) return;
+    if ((child.braceletNumber || '').trim() !== checkoutBracelet.trim()) {
+      toast.error(`Pulseira incorreta! Esperado: #${child.braceletNumber}`);
+      return;
+    }
+    try {
+      await updateChild(child.id, { status: 'left' });
+      toast.success(`${child.name} liberado(a) ✅`);
+      setCheckoutChild(null);
+      setCheckoutBracelet('');
+      setCheckoutQuery('');
+      setCheckoutMode(false);
+    } catch {
+      toast.error('Erro ao registrar saída');
+    }
+  };
+
+  const handleEmergency = async () => {
+    if (emergencyLoading) return;
+    setEmergencyLoading(true);
+    try {
+      const uncalled = roomChildren.filter((c) => c.status !== 'called');
+      for (const child of uncalled) {
+        await addCall({
+          childId: child.id,
+          childName: child.name,
+          braceletNumber: child.braceletNumber || '??',
+          roomId: child.roomId,
+          reason: 'Urgência',
+          reasonIcon: '⚠️',
+        });
+        await updateChild(child.id, { status: 'called' });
+        acionarPulseira(child.braceletNumber || '??', 'Urgência').catch(() => {});
+      }
+      toast.error(`⚠️ Emergência! ${uncalled.length} pais acionados`);
+    } catch {
+      toast.error('Erro ao acionar emergência');
+    } finally {
+      setEmergencyLoading(false);
+    }
+  };
 
   const handleCall = async (childId: string, reasonIdx: number) => {
     const child = children.find((c) => c.id === childId);
@@ -122,6 +175,88 @@ const TiaDaSala = () => {
     );
   }
 
+  // Tela de confirmação de check-out
+  if (checkoutChild) {
+    const child = children.find((c) => c.id === checkoutChild);
+    return (
+      <div className="min-h-screen bg-background max-w-[430px] mx-auto flex flex-col animate-fade-in">
+        <header className="bg-primary px-4 pb-3 flex items-center gap-2" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}>
+          <OvelhinhaLogo size={28} white />
+          <span className="font-heading font-extrabold text-primary-foreground">Confirmar Saída</span>
+        </header>
+        <div className="flex-1 flex flex-col items-center justify-center p-6 gap-6">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center font-heading font-bold text-primary text-2xl mx-auto mb-3">
+              {child?.name.charAt(0)}
+            </div>
+            <h2 className="font-heading font-black text-xl text-foreground">{child?.name}</h2>
+            <p className="text-sm text-muted-foreground mt-1">Pulseira esperada: <span className="font-mono font-bold text-foreground">#{child?.braceletNumber || '??'}</span></p>
+          </div>
+          <div className="w-full">
+            <p className="text-sm font-medium text-foreground mb-2">Digite o número da pulseira do pai:</p>
+            <input
+              type="number"
+              value={checkoutBracelet}
+              onChange={(e) => setCheckoutBracelet(e.target.value)}
+              placeholder="Ex: 07"
+              className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground text-lg font-mono text-center focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              autoFocus
+            />
+          </div>
+          <div className="w-full flex gap-3">
+            <button onClick={() => { setCheckoutChild(null); setCheckoutBracelet(''); }} className="flex-1 py-3 rounded-lg border border-border text-muted-foreground font-bold">Cancelar</button>
+            <button onClick={handleCheckoutConfirm} disabled={!checkoutBracelet} className="flex-1 py-3 rounded-lg bg-success text-success-foreground font-bold disabled:opacity-40">Confirmar Saída</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Modo check-out — buscar criança por nome ou número
+  if (checkoutMode) {
+    const checkoutFiltered = roomChildren.filter((c) =>
+      c.name.toLowerCase().includes(checkoutQuery.toLowerCase()) ||
+      (c.braceletNumber || '').includes(checkoutQuery)
+    );
+    return (
+      <div className="min-h-screen bg-background max-w-[430px] mx-auto">
+        <header className="bg-primary px-4 pb-3 flex items-center gap-3" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}>
+          <OvelhinhaLogo size={28} white />
+          <span className="font-heading font-extrabold text-primary-foreground flex-1">Registrar Saída</span>
+          <button onClick={() => setCheckoutMode(false)} className="text-primary-foreground/80 text-sm">Cancelar</button>
+        </header>
+        <div className="p-4 space-y-3">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input value={checkoutQuery} onChange={(e) => setCheckoutQuery(e.target.value)}
+                placeholder="Nome ou número da pulseira..."
+                className="w-full pl-10 pr-4 py-3 rounded-lg border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                autoFocus />
+            </div>
+            <button onClick={() => { setScanMode('checkout'); setScanning(true); }}
+              className="px-3 py-3 rounded-lg bg-card border border-border">
+              <Camera className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
+          <div className="space-y-2">
+            {checkoutFiltered.map((child) => (
+              <button key={child.id} onClick={() => { setCheckoutChild(child.id); setCheckoutBracelet(''); }}
+                className="w-full bg-card rounded-xl border border-border p-4 flex items-center gap-3 text-left hover:bg-muted/30 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-heading font-bold text-primary text-sm">{child.name.charAt(0)}</div>
+                <div>
+                  <p className="font-heading font-bold text-foreground text-sm">{child.name}</p>
+                  {child.braceletNumber && <span className="font-mono text-xs text-muted-foreground">#{child.braceletNumber}</span>}
+                </div>
+              </button>
+            ))}
+            {checkoutFiltered.length === 0 && <p className="text-center text-muted-foreground text-sm py-8">Nenhuma criança encontrada</p>}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background max-w-[430px] mx-auto">
       <header className="bg-primary px-4 pb-3 flex items-center gap-2" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}>
@@ -132,15 +267,42 @@ const TiaDaSala = () => {
             ✓ {arrival}
           </div>
         )}
-        <button onClick={() => navigate('/gestor')} className="ml-auto text-primary-foreground/50 hover:text-primary-foreground text-xs px-1 py-1 rounded transition-colors">
+        <button onClick={() => setCheckoutMode(true)} className="ml-auto text-primary-foreground text-xs font-bold bg-white/20 px-2 py-1 rounded-lg">
+          Saída
+        </button>
+        <button onClick={() => navigate('/gestor')} className="text-primary-foreground/50 hover:text-primary-foreground text-xs px-1 py-1 rounded transition-colors">
           ⚙️
         </button>
         <span className="text-primary-foreground/80 text-sm shrink-0">{room?.emoji} {room?.name}</span>
       </header>
 
-      <div className="p-6 flex justify-center">
-        <button onClick={() => setScanning(true)} className="w-28 h-28 rounded-full bg-primary flex flex-col items-center justify-center hover:bg-primary-hover transition-colors shadow-medium">
-          <Camera className="w-8 h-8 text-primary-foreground mb-1" />
+      {/* Painel de presença */}
+      <div className="px-4 pt-4 pb-2 grid grid-cols-3 gap-2">
+        <div className="bg-card rounded-xl border border-border p-3 flex flex-col items-center gap-1">
+          <Users className="w-4 h-4 text-primary" />
+          <span className="font-heading font-black text-xl text-foreground">{roomChildren.length}</span>
+          <span className="text-[10px] text-muted-foreground text-center">Presentes</span>
+        </div>
+        <div className={`rounded-xl border p-3 flex flex-col items-center gap-1 ${calledChildren.length > 0 ? 'bg-urgent/10 border-urgent/30' : 'bg-card border-border'}`}>
+          <Bell className={`w-4 h-4 ${calledChildren.length > 0 ? 'text-urgent' : 'text-muted-foreground'}`} />
+          <span className={`font-heading font-black text-xl ${calledChildren.length > 0 ? 'text-urgent' : 'text-foreground'}`}>{calledChildren.length}</span>
+          <span className="text-[10px] text-muted-foreground text-center">Chamados</span>
+        </div>
+        <button
+          onClick={handleEmergency}
+          disabled={emergencyLoading || roomChildren.length === 0}
+          className="bg-urgent/10 border border-urgent/30 rounded-xl p-3 flex flex-col items-center gap-1 active:scale-95 transition-transform disabled:opacity-40"
+        >
+          <AlertTriangle className="w-4 h-4 text-urgent" />
+          <span className="font-heading font-black text-xs text-urgent text-center leading-tight">
+            {emergencyLoading ? '...' : 'Emergência'}
+          </span>
+        </button>
+      </div>
+
+      <div className="p-4 flex justify-center">
+        <button onClick={() => setScanning(true)} className="w-24 h-24 rounded-full bg-primary flex flex-col items-center justify-center hover:bg-primary-hover transition-colors shadow-medium">
+          <Camera className="w-7 h-7 text-primary-foreground mb-1" />
           <span className="text-primary-foreground text-xs font-bold">Escanear</span>
         </button>
       </div>

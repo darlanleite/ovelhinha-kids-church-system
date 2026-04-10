@@ -79,17 +79,9 @@
 #include <time.h>
 
 // ============================================================
-// CONFIGURAÇÕES — edite antes de gravar
+// CONFIGURAÇÕES — edite config.h antes de gravar
 // ============================================================
-#define WIFI_SSID         "D&D"
-#define WIFI_PASSWORD     "27804028"
-#define SUPABASE_URL      "https://reefzadzwbmhkojtjqhz.supabase.co"
-#define SUPABASE_KEY      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlZWZ6YWR6d2JtaGtvanRqcWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzUzNDksImV4cCI6MjA5MDgxMTM0OX0.RoAIEJoJT31EdmkjA_3LeyDdiw9f9uK0GuJd2OvfQ_E"
-#define CHURCH_ID         "00000000-0000-0000-0000-000000000001"
-#define GATEWAY_NAME      "Gateway-02"
-// UUID deste gateway na tabela gateways — obter após primeiro boot (registerGateway imprime no Serial)
-// ou inserir manualmente: INSERT INTO gateways(church_id,name) VALUES('...','Gateway-02') RETURNING id;
-#define GATEWAY_ID        "226e97a1-703f-4ba1-b2d7-043b8fc55e45"
+#include "config.h"
 #define POLL_INTERVAL_MS   2000
 #define HEARTBEAT_MS      30000
 #define WIFI_CHECK_MS     10000
@@ -239,6 +231,7 @@ bool     resolveEspId(const char* bracelet_id, char* out_esp_id);
 void     registerGateway();
 void     pollCommands();
 void     heartbeat();
+bool     isCommandStillPending(const char* id);
 void     patchCommandStatus(const char* id, const char* status);
 void     processQueue();
 void     startBLEExec(QueueItem& item);
@@ -571,6 +564,15 @@ void registerGateway() {
   }
 }
 
+bool isCommandStillPending(const char* id) {
+  String url = String(SUPABASE_URL)
+    + "/rest/v1/gateway_commands?id=eq." + id
+    + "&status=eq.pending&select=id&limit=1";
+  String response = httpGet(url.c_str());
+  if (response.isEmpty() || response == "[]") return false;
+  return true;
+}
+
 void pollCommands() {
   String url = String(SUPABASE_URL)
     + "/rest/v1/gateway_commands"
@@ -714,6 +716,15 @@ void tickBLE() {
   // ---------- FAILED ----------
   if (bleExecState == BLE_EXEC_FAILED) {
     activeItem.attempts++;
+
+    if (!isCommandStillPending(activeItem.id)) {
+      Serial.printf("[BLE] Comando %s já entregue por outro gateway — cancelando retries\n",
+        activeItem.id);
+      bleOccupied  = false;
+      bleExecState = BLE_EXEC_IDLE;
+      return;
+    }
+
     if (activeItem.attempts < BLE_MAX_ATTEMPTS) {
       Serial.printf("[BLE] Tentativa %d falhou — recolocando na fila\n",
         activeItem.attempts);

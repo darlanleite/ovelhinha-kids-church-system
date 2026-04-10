@@ -4,6 +4,7 @@ import { Home, UserPlus, Watch, BarChart3, Settings, LogOut, Bell } from 'lucide
 import { useAppStore } from '@/store/useAppStore';
 import { useChurch } from '@/hooks/useChurch';
 import { useCalls } from '@/hooks/useCalls';
+import { useAutoReactivate } from '@/hooks/useAutoReactivate';
 import OvelhinhaLogo from '@/components/OvelhinhaLogo';
 
 const navItems = [
@@ -20,7 +21,8 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const logout = useAppStore((s) => s.logout);
   const { settings } = useChurch();
-  const { openCalls } = useCalls();
+  const { openCalls, reactivateCall } = useCalls();
+  useAutoReactivate(openCalls, settings.reactivateMinutes, reactivateCall);
 
   const handleLogout = () => {
     logout();
