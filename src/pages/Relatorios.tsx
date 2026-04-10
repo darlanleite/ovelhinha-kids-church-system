@@ -1,9 +1,10 @@
 import { useReports } from '@/hooks/useReports';
 import { useCalls } from '@/hooks/useCalls';
 import { useChildren } from '@/hooks/useChildren';
+import { useBracelets } from '@/hooks/useBracelets';
 import { useGatewayCommands } from '@/hooks/useGatewayCommands';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Download, Users, Bell, Clock, Radio } from 'lucide-react';
+import { Download, Users, Bell, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 const PIE_COLORS = ['#5B8CFF', '#FFB347', '#FF6B6B', '#3ECFAA', '#6B7280', '#A78BFA'];
@@ -12,7 +13,28 @@ const Relatorios = () => {
   const { history } = useReports();
   const { calls } = useCalls();
   const { children } = useChildren();
+  const { bracelets } = useBracelets();
   const { commands } = useGatewayCommands();
+
+  // Mapa número da pulseira → UUID
+  const braceletUUIDMap = Object.fromEntries(bracelets.map((b) => [b.number, b.id]));
+
+  // Para cada call, encontra o comando 'acionar' mais próximo no tempo (até 10s)
+  function getGatewayForCall(braceletNumber: string, callCreatedAt: string): string | null {
+    const braceletId = braceletUUIDMap[braceletNumber];
+    if (!braceletId) return null;
+    const callTime = new Date(callCreatedAt).getTime();
+    const match = commands
+      .filter((c) => c.command === 'acionar' && c.bracelet_id === braceletId && c.gateway_name)
+      .sort((a, b) => {
+        const diffA = Math.abs(new Date(a.created_at).getTime() - callTime);
+        const diffB = Math.abs(new Date(b.created_at).getTime() - callTime);
+        return diffA - diffB;
+      })[0];
+    if (!match) return null;
+    const diff = Math.abs(new Date(match.created_at).getTime() - callTime);
+    return diff <= 10_000 ? match.gateway_name : null;
+  }
 
   const barData = history.map((h) => ({ name: h.serviceName.replace('Culto ', ''), criancas: h.childrenCount, chamadas: h.callsCount }));
 
@@ -98,6 +120,7 @@ const Relatorios = () => {
                 <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Criança</th>
                 <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Motivo</th>
                 <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Pulseira</th>
+                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Gateway</th>
                 <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Status</th>
                 <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Data</th>
               </tr>
@@ -105,11 +128,13 @@ const Relatorios = () => {
             <tbody>
               {calls.map((call, i) => {
                 const child = children.find((c) => c.id === call.childId);
+                const gateway = getGatewayForCall(call.braceletNumber ?? '', call.createdAt);
                 return (
                   <tr key={call.id} className={`border-b border-border last:border-0 ${i % 2 === 0 ? '' : 'bg-muted/20'}`}>
                     <td className="px-5 py-3 font-medium text-foreground">{child?.name || '—'}</td>
                     <td className="px-5 py-3 text-muted-foreground">{call.reasonIcon} {call.reason}</td>
                     <td className="px-5 py-3 font-mono text-foreground">#{call.braceletNumber}</td>
+                    <td className="px-5 py-3 text-muted-foreground text-xs">{gateway || '—'}</td>
                     <td className="px-5 py-3">
                       <span className={`text-xs font-bold px-2 py-1 rounded-full ${call.status === 'open' ? 'bg-urgent/10 text-urgent' : 'bg-success/10 text-success'}`}>
                         {call.status === 'open' ? 'Aberta' : 'Atendida'}
@@ -119,49 +144,6 @@ const Relatorios = () => {
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {/* Log de entrega BLE */}
-      <div className="bg-card rounded-card shadow-soft border border-border overflow-hidden">
-        <div className="flex items-center gap-2 p-5 pb-0">
-          <Radio className="w-4 h-4 text-primary" />
-          <h3 className="font-heading font-bold text-foreground">Entregas BLE — últimos 50 comandos</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Comando</th>
-                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Motivo</th>
-                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Status</th>
-                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Gateway</th>
-                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Entregue em</th>
-                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Criado em</th>
-              </tr>
-            </thead>
-            <tbody>
-              {commands.map((cmd, i) => (
-                <tr key={cmd.id} className={`border-b border-border last:border-0 ${i % 2 === 0 ? '' : 'bg-muted/20'}`}>
-                  <td className="px-5 py-3 font-mono font-bold text-foreground">{cmd.command}</td>
-                  <td className="px-5 py-3 text-muted-foreground">{cmd.reason || '—'}</td>
-                  <td className="px-5 py-3">
-                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                      cmd.status === 'sent' ? 'bg-success/10 text-success' :
-                      cmd.status === 'failed' ? 'bg-urgent/10 text-urgent' :
-                      'bg-amber-100 text-amber-700'
-                    }`}>
-                      {cmd.status === 'sent' ? 'Entregue' : cmd.status === 'failed' ? 'Falhou' : 'Pendente'}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-foreground">{cmd.gateway_name || '—'}</td>
-                  <td className="px-5 py-3 text-muted-foreground">
-                    {cmd.delivered_at ? new Date(cmd.delivered_at).toLocaleString('pt-BR') : '—'}
-                  </td>
-                  <td className="px-5 py-3 text-muted-foreground">{new Date(cmd.created_at).toLocaleString('pt-BR')}</td>
-                </tr>
-              ))}
             </tbody>
           </table>
         </div>
