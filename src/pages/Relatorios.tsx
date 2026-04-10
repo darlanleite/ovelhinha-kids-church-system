@@ -1,8 +1,9 @@
 import { useReports } from '@/hooks/useReports';
 import { useCalls } from '@/hooks/useCalls';
 import { useChildren } from '@/hooks/useChildren';
+import { useGatewayCommands } from '@/hooks/useGatewayCommands';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Download, Users, Bell, Clock } from 'lucide-react';
+import { Download, Users, Bell, Clock, Radio } from 'lucide-react';
 import { toast } from 'sonner';
 
 const PIE_COLORS = ['#5B8CFF', '#FFB347', '#FF6B6B', '#3ECFAA', '#6B7280', '#A78BFA'];
@@ -11,6 +12,7 @@ const Relatorios = () => {
   const { history } = useReports();
   const { calls } = useCalls();
   const { children } = useChildren();
+  const { commands } = useGatewayCommands();
 
   const barData = history.map((h) => ({ name: h.serviceName.replace('Culto ', ''), criancas: h.childrenCount, chamadas: h.callsCount }));
 
@@ -117,6 +119,49 @@ const Relatorios = () => {
                   </tr>
                 );
               })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {/* Log de entrega BLE */}
+      <div className="bg-card rounded-card shadow-soft border border-border overflow-hidden">
+        <div className="flex items-center gap-2 p-5 pb-0">
+          <Radio className="w-4 h-4 text-primary" />
+          <h3 className="font-heading font-bold text-foreground">Entregas BLE — últimos 50 comandos</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Comando</th>
+                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Motivo</th>
+                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Status</th>
+                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Gateway</th>
+                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Entregue em</th>
+                <th className="text-left px-5 py-3 text-xs uppercase text-muted-foreground font-heading font-bold tracking-wider">Criado em</th>
+              </tr>
+            </thead>
+            <tbody>
+              {commands.map((cmd, i) => (
+                <tr key={cmd.id} className={`border-b border-border last:border-0 ${i % 2 === 0 ? '' : 'bg-muted/20'}`}>
+                  <td className="px-5 py-3 font-mono font-bold text-foreground">{cmd.command}</td>
+                  <td className="px-5 py-3 text-muted-foreground">{cmd.reason || '—'}</td>
+                  <td className="px-5 py-3">
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                      cmd.status === 'sent' ? 'bg-success/10 text-success' :
+                      cmd.status === 'failed' ? 'bg-urgent/10 text-urgent' :
+                      'bg-amber-100 text-amber-700'
+                    }`}>
+                      {cmd.status === 'sent' ? 'Entregue' : cmd.status === 'failed' ? 'Falhou' : 'Pendente'}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-foreground">{cmd.gateway_name || '—'}</td>
+                  <td className="px-5 py-3 text-muted-foreground">
+                    {cmd.delivered_at ? new Date(cmd.delivered_at).toLocaleString('pt-BR') : '—'}
+                  </td>
+                  <td className="px-5 py-3 text-muted-foreground">{new Date(cmd.created_at).toLocaleString('pt-BR')}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

@@ -10,25 +10,46 @@ function computeStatus(lastSeen: string | null): GatewayStatus {
   return 'offline'
 }
 
+export interface GatewayInfo {
+  name: string
+  status: GatewayStatus
+  lastSeen: string | null
+  secsAgo: number | null
+}
+
 export function useGateway() {
   const { data, isLoading } = useQuery({
-    queryKey: ['gateway', CHURCH_ID],
+    queryKey: ['gateways', CHURCH_ID],
     queryFn: async () => {
       const { data } = await supabase
         .from('gateways')
         .select('name, last_seen')
         .eq('church_id', CHURCH_ID)
-        .order('last_seen', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      return data
+        .order('name', { ascending: true })
+      return data ?? []
     },
-    refetchInterval: 15_000, // atualiza a cada 15s
+    refetchInterval: 15_000,
   })
 
-  const lastSeen = data?.last_seen ?? null
-  const status = computeStatus(lastSeen)
-  const secsAgo = lastSeen ? Math.floor((Date.now() - new Date(lastSeen).getTime()) / 1000) : null
+  const gateways: GatewayInfo[] = (data ?? []).map((g) => {
+    const lastSeen = g.last_seen ?? null
+    const secsAgo = lastSeen ? Math.floor((Date.now() - new Date(lastSeen).getTime()) / 1000) : null
+    return { name: g.name, status: computeStatus(lastSeen), lastSeen, secsAgo }
+  })
 
-  return { status, lastSeen, secsAgo, name: data?.name ?? 'Gateway-01', isLoading }
+  // Compatibilidade retroativa — retorna o status do "pior" gateway para alertas globais
+  const anyOffline = gateways.some((g) => g.status === 'offline')
+  const allUnknown = gateways.length === 0
+  const globalStatus: GatewayStatus = allUnknown ? 'unknown' : anyOffline ? 'offline' : 'online'
+
+  // Campos legados (usado por código antigo que esperava um único gateway)
+  const first = gateways[0]
+  return {
+    gateways,
+    status: globalStatus,
+    lastSeen: first?.lastSeen ?? null,
+    secsAgo: first?.secsAgo ?? null,
+    name: first?.name ?? 'Gateway-01',
+    isLoading,
+  }
 }

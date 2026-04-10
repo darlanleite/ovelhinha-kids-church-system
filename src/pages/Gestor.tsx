@@ -243,7 +243,7 @@ function StatusTab() {
   const { children } = useChildren();
   const { openCalls } = useCalls();
   const { bracelets } = useBracelets();
-  const { status, secsAgo, name } = useGateway();
+  const { gateways } = useGateway();
 
   const present = children.filter((c) => c.status !== 'left').length;
   const called = children.filter((c) => c.status === 'called').length;
@@ -251,20 +251,27 @@ function StatusTab() {
   const warning = bracelets.filter((b) => b.connectivityStatus === 'warning' && b.status === 'in-use');
   const inUse = bracelets.filter((b) => b.status === 'in-use');
 
-  const gatewayColor = status === 'online' ? 'bg-success' : status === 'offline' ? 'bg-urgent' : 'bg-muted-foreground';
-  const gatewayLabel = status === 'online' ? 'Online' : status === 'offline' ? 'Offline' : 'Desconhecido';
-
   return (
     <div className="p-4 space-y-4">
-      {/* Gateway */}
+      {/* Gateways */}
       <div className="bg-card rounded-card border border-border p-4">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Gateway BLE</p>
-        <div className="flex items-center gap-3">
-          <span className={`w-3 h-3 rounded-full shrink-0 ${gatewayColor} ${status === 'online' ? 'animate-pulse' : ''}`} />
-          <span className="font-heading font-bold text-foreground">{name}</span>
-          <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${status === 'online' ? 'bg-success/10 text-success' : 'bg-urgent/10 text-urgent'}`}>{gatewayLabel}</span>
+        <div className="space-y-2">
+          {gateways.map((gw) => {
+            const color = gw.status === 'online' ? 'bg-success' : gw.status === 'offline' ? 'bg-urgent' : 'bg-muted-foreground';
+            const label = gw.status === 'online' ? 'Online' : gw.status === 'offline' ? 'Offline' : 'Desconhecido';
+            return (
+              <div key={gw.name}>
+                <div className="flex items-center gap-3">
+                  <span className={`w-3 h-3 rounded-full shrink-0 ${color} ${gw.status === 'online' ? 'animate-pulse' : ''}`} />
+                  <span className="font-heading font-bold text-foreground">{gw.name}</span>
+                  <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${gw.status === 'online' ? 'bg-success/10 text-success' : 'bg-urgent/10 text-urgent'}`}>{label}</span>
+                </div>
+                {gw.secsAgo !== null && <p className="text-xs text-muted-foreground mt-1 ml-6">Último ping há {gw.secsAgo}s</p>}
+              </div>
+            );
+          })}
         </div>
-        {secsAgo !== null && <p className="text-xs text-muted-foreground mt-2">Último ping há {secsAgo}s</p>}
       </div>
 
       {/* Stats */}

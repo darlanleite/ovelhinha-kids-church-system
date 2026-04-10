@@ -318,6 +318,25 @@ http.setTimeout(15000); // TLS handshake é lento — mínimo 15s
 4. **Copiar `NimBLEAddress` antes de `clearResults()`** — ponteiro `NimBLEAdvertisedDevice*` fica dangling após limpar. Usar `NimBLEAddress foundAddress = device->getAddress()` (cópia por valor).
 5. **Delay após stop scan:** aguardar 500ms entre `pScan->stop()` e `pClient->connect()` para o stack sair completamente do modo scan.
 
+#### Multi-gateway — design e armadilhas
+
+**Padrão adotado:** broadcast — todos os gateways recebem os mesmos comandos `pending`. O primeiro a entregar BLE reivindica o registro via PATCH atômico. Entregas duplicadas na pulseira são inofensivas (mesmo byte = mesmo estado de LED).
+
+**Claim atômico via Supabase PATCH:**
+Adicionar `&status=eq.pending` no filtro da URL garante que só o primeiro gateway a PATCH consegue alterar o registro. O segundo encontra 0 linhas afetadas e ignora silenciosamente:
+```c
+// Correto: claim atômico
+String url = SUPABASE_URL + "/rest/v1/gateway_commands?id=eq." + id + "&status=eq.pending";
+// Errado (sem guarda): ambos os gateways sobrescrevem
+String url = SUPABASE_URL + "/rest/v1/gateway_commands?id=eq." + id;
+```
+
+**ATENÇÃO — `pollCommands()` marca 'sent' prematuramente:**
+O firmware atual chama `patchCommandStatus(id, "sent")` DENTRO de `pollCommands()`, antes do BLE. Isso era intencional (evitar re-entrega no reset), mas impede broadcast real: o primeiro gateway a fazer poll "rouba" o comando dos outros. Para multi-gateway funcionar corretamente, esta chamada deve ser removida de `pollCommands()` — o status só deve mudar após a tentativa BLE (em `tickBLE()`).
+
+**O que NÃO mudar ao adicionar multi-gateway:**
+`doConnectAndSend()`, `tickBLE()`, `GatewayScanCallbacks`, `processQueue()`, `startBLEExec()`, `pollCommands()` (exceto remover o patchCommandStatus prematuro), WiFi.setSleep(false), NimBLE setup — toda a lógica BLE fica intocada. A única mudança é `patchCommandStatus()` e remover o claim antecipado do poll.
+
 ---
 
 ## Arquitetura de Hardware (ESP32-C3)

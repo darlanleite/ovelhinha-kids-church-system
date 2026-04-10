@@ -8,7 +8,7 @@ import { Plus, Trash2, RefreshCw, Cpu } from 'lucide-react';
 const Configuracoes = () => {
   const { settings, rooms, updateSettings, generateDailyCode, addRoom, removeRoom, novoCulto } = useChurch();
   const { bracelets, updateBracelet } = useBracelets();
-  const { status: gwStatus, secsAgo, name: gwName } = useGateway();
+  const { gateways } = useGateway();
   const [confirmando, setConfirmando] = useState(false);
   const [churchName, setChurchName] = useState(settings.churchName);
   const [reactivateMinutes, setReactivateMinutes] = useState(settings.reactivateMinutes);
@@ -107,15 +107,22 @@ const Configuracoes = () => {
       {/* Gateway Status */}
       <div className="bg-card rounded-card shadow-soft border border-border p-6">
         <h2 className="font-heading font-extrabold text-lg text-foreground mb-4">📡 Gateway BLE</h2>
-        <div className="flex items-center gap-3">
-          <div className={`w-3 h-3 rounded-full shrink-0 ${gwStatus === 'online' ? 'bg-success animate-pulse' : 'bg-urgent'}`} />
-          <p className="font-heading font-bold text-foreground text-sm flex-1">{gwName}</p>
-          <p className="text-xs text-muted-foreground">
-            {secsAgo !== null ? `último ping há ${secsAgo}s` : '—'}
-          </p>
-          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${gwStatus === 'online' ? 'bg-success/10 text-success' : 'bg-urgent/10 text-urgent'}`}>
-            {gwStatus === 'online' ? 'Online' : 'Offline'}
-          </span>
+        <div className="space-y-3">
+          {gateways.length === 0 && (
+            <p className="text-sm text-muted-foreground">Nenhum gateway registrado.</p>
+          )}
+          {gateways.map((gw) => (
+            <div key={gw.name} className="flex items-center gap-3">
+              <div className={`w-3 h-3 rounded-full shrink-0 ${gw.status === 'online' ? 'bg-success animate-pulse' : 'bg-urgent'}`} />
+              <p className="font-heading font-bold text-foreground text-sm flex-1">{gw.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {gw.secsAgo !== null ? `último ping há ${gw.secsAgo}s` : '—'}
+              </p>
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${gw.status === 'online' ? 'bg-success/10 text-success' : 'bg-urgent/10 text-urgent'}`}>
+                {gw.status === 'online' ? 'Online' : 'Offline'}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
